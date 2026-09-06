@@ -113,15 +113,221 @@ public class Eta : ModuleRules
 
 ## アビリティの作成
 プロジェクト用のアビリティクラスを作成します。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyGameplayAbility.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Abilities/GameplayAbility.h"
+#include "MyGameplayAbility.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API UMyGameplayAbility : public UGameplayAbility
+{
+	GENERATED_BODY()
+	
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyGameplayAbility.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Characters/Common/AbilitySystem/Abilities/MyGameplayAbility.h"
+
+```
+</div>
+<br>
+
+
 
 ## アビリティシステムコンポーネントの作成
 アビリティシステムの基幹となるプロジェクト用のアビリティシステムコンポーネントを作成します。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyAbilitySystemComponent.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
+#include "MyAbilitySystemComponent.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API UMyAbilitySystemComponent : public UAbilitySystemComponent
+{
+	GENERATED_BODY()
+	
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyAbilitySystemComponent.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Characters/Common/AbilitySystem/MyAbilitySystemComponent.h"
+
+```
+</div>
+<br>
+
 
 ## プレイヤーステートの作成
 プロジェクト用のプレイヤーステータクラスを作成します。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerState.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/PlayerState.h"
+#include "MyPlayerState.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API AMyPlayerState : public APlayerState
+{
+	GENERATED_BODY()
+	
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerState.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Player/MyPlayerState.h"
+
+```
+</div>
+<br>
+
 
 ## キャラクターの作成
 ### ベースキャラクターの作成
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyCharacter.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "MyCharacter.generated.h"
+
+UCLASS()
+class ETA_API AMyCharacter : public ACharacter
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this character's properties
+	AMyCharacter();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyCharacter.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Characters/Common/MyCharacter.h"
+
+// Sets default values
+AMyCharacter::AMyCharacter()
+{
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+
+// Called when the game starts or when spawned
+void AMyCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
+// Called every frame
+void AMyCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+// Called to bind functionality to input
+void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+}
+
+```
+</div>
+<br>
+
 ### プレイヤーキャラクターの作成
 ### エネミーキャラクターの作成
 
