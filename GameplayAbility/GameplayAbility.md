@@ -18,17 +18,18 @@
 	- [アビリティシステムのクラス構成](#アビリティシステムのクラス構成)
 		- [プレイヤー](#プレイヤー)
 		- [エネミー](#エネミー)
+	- [アビリティシステムのレプリケーション](#アビリティシステムのレプリケーション)
 	- [アビリティの作成](#アビリティの作成)
+	- [アトリビュートセットの作成](#アトリビュートセットの作成)
 	- [アビリティシステムコンポーネントの作成](#アビリティシステムコンポーネントの作成)
 	- [プレイヤーステートの作成](#プレイヤーステートの作成)
 	- [キャラクターの作成](#キャラクターの作成)
 		- [ベースキャラクターの作成](#ベースキャラクターの作成)
 		- [プレイヤーキャラクターの作成](#プレイヤーキャラクターの作成)
+			- [アビリティシステムの初期化](#アビリティシステムの初期化)
 		- [エネミーキャラクターの作成](#エネミーキャラクターの作成)
 	- [アビリティーアクター情報の初期化](#アビリティーアクター情報の初期化)
 	- [レプリケーションモード](#レプリケーションモード)
-	- [アトリビュートセット](#アトリビュートセット-1)
-		- [アトリビュートセットの作成](#アトリビュートセットの作成)
 
 ## アビリティシステムの概要
 アビリティシステムは以下のパーツから構成されています。  
@@ -111,6 +112,28 @@ public class Eta : ModuleRules
   - アビリティシステムコンポーネント
   - アトリビュートセット
 
+## アビリティシステムのレプリケーション
+アビリティシステムはネットワーク対応で３つのレプリケーションモードがあります。このモードによりゲームプレイエフェクトのレプリケーションのされ方が変わります。
+- 完全 (Full)
+  - アクティブなGEのすべての詳細（持続時間、スタック数、タグのカウントなど）をすべてのクライアントにレプリケートします。
+  - プレイヤーステータスを他者から完全に把握する必要がある場合に向いていますが、ネットワーク帯域の負荷が高くなります。
+- 混合 (Mixed)
+  - 所有している本人（Local Player / Owner）には「完全詳細」を送り、他のプレイヤーや観戦者には「最小限（Minimal）」の情報だけを送ります。
+  - 自分のUIには正確なクールダウンやバフ・デバフの残り時間を表示させつつ、他人からは見えないようにしてネットワーク負荷を抑える、プレイヤーキャラクターの標準的な推奨設定です
+- 最小 (Minimal)
+  - 所有権に関わらず、付与されているタグやゲームプレイキュー（Gameplay Cue）の情報のみを最小限レプリケートします。
+  - 内部的なダメージ計算や詳細なスタック数を他のクライアントが知る必要のない、数多くスポーンするAIや敵キャラクター（Enemy）に最適です。
+
+上記を鑑みて今回のソースではアビリティシステムコンポーネントについてはプレイヤーキャラクターのMixed、エネミーキャラクターについてはMinimalを設定します。  
+
+なお、アビリティシステムコンポーネントのレプリケーションモードに混合(Mixed)を使う場合、以下の注意点があります。
+
+- アビリティシステムコンポーネントの初期化関数InitAbilityActorInfoで指定するオーナーアクターはコントローラークラスである必要がある。
+- プレイヤーステートのオーナーはコントローラーなので、プレイヤーステートをオーナーアクターに指定するのは問題ない。
+- オーナーアクターがプレイヤーコントローラーやプレイヤーステートではない場合は、オーナーアクターのオーナーにはSetOwnerでコントローラーを指定する必要がある。
+
+今回のソースでは、プレイヤーキャラクターが混合 (Mixed)を使用するため、InitAbilityActorInfoで指定するオーナーアクターはプレイヤーステートになります。
+
 ## アビリティの作成
 プロジェクト用のアビリティクラスを作成します。
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
@@ -154,192 +177,7 @@ class ETA_API UMyGameplayAbility : public UGameplayAbility
 </div>
 <br>
 
-
-
-## アビリティシステムコンポーネントの作成
-アビリティシステムの基幹となるプロジェクト用のアビリティシステムコンポーネントを作成します。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyAbilitySystemComponent.h
-</div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
-
-```cpp
-// Copyright MyGameCompany. All Rights Reserved.
-
-#pragma once
-
-#include "CoreMinimal.h"
-#include "AbilitySystemComponent.h"
-#include "MyAbilitySystemComponent.generated.h"
-
-/**
- * 
- */
-UCLASS()
-class ETA_API UMyAbilitySystemComponent : public UAbilitySystemComponent
-{
-	GENERATED_BODY()
-	
-};
-```
-</div>
-<br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyAbilitySystemComponent.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
-
-```cpp
-// Copyright MyGameCompany. All Rights Reserved.
-
-
-#include "Characters/Common/AbilitySystem/MyAbilitySystemComponent.h"
-
-```
-</div>
-<br>
-
-
-## プレイヤーステートの作成
-プロジェクト用のプレイヤーステータクラスを作成します。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyPlayerState.h
-</div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
-
-```cpp
-// Copyright MyGameCompany. All Rights Reserved.
-
-#pragma once
-
-#include "CoreMinimal.h"
-#include "GameFramework/PlayerState.h"
-#include "MyPlayerState.generated.h"
-
-/**
- * 
- */
-UCLASS()
-class ETA_API AMyPlayerState : public APlayerState
-{
-	GENERATED_BODY()
-	
-};
-```
-</div>
-<br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyPlayerState.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
-
-```cpp
-// Copyright MyGameCompany. All Rights Reserved.
-
-
-#include "Player/MyPlayerState.h"
-
-```
-</div>
-<br>
-
-
-## キャラクターの作成
-### ベースキャラクターの作成
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyCharacter.h
-</div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
-
-```cpp
-// Copyright MyGameCompany. All Rights Reserved.
-
-#pragma once
-
-#include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "MyCharacter.generated.h"
-
-UCLASS()
-class ETA_API AMyCharacter : public ACharacter
-{
-	GENERATED_BODY()
-
-public:
-	// Sets default values for this character's properties
-	AMyCharacter();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-};
-```
-</div>
-<br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyCharacter.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
-
-```cpp
-// Copyright MyGameCompany. All Rights Reserved.
-
-
-#include "Characters/Common/MyCharacter.h"
-
-// Sets default values
-AMyCharacter::AMyCharacter()
-{
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-}
-
-// Called when the game starts or when spawned
-void AMyCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AMyCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-
-```
-</div>
-<br>
-
-### プレイヤーキャラクターの作成
-### エネミーキャラクターの作成
-
-## アビリティーアクター情報の初期化
-
-## レプリケーションモード
-
-## アトリビュートセット
-キャラクターにはStrength,Intelligence,Health,Manaといったパラメータが存在します。  
-ゲームプレイアビリティではこれらをアトリビュートというfloat値で表し、それを1セットにまとめたものをアトリビュートセットという形でキャラクターに持たせます。
-
-### アトリビュートセットの作成
+## アトリビュートセットの作成
 アトリビュートセットクラスを作成し、以下の実装を行います。
 - ゲームで使用するアトリビュートの定義
   - プライマリアトリビュート  
@@ -791,4 +629,228 @@ void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 ```
 </div>
 <br>
+
+## アビリティシステムコンポーネントの作成
+アビリティシステムの基幹となるアビリティシステムコンポーネントを作成します。  
+ここではキャラクターに通常のアビリティとパッシブアビリティの2種類を与える関数を用意します。パッシブアビリティは付与とアクティベートが同時に行われるアビリティになります。
+
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyAbilitySystemComponent.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
+#include "MyAbilitySystemComponent.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API UMyAbilitySystemComponent : public UAbilitySystemComponent
+{
+	GENERATED_BODY()
+	
+public:
+	// ASCにアビリティ付与
+	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities, int32 Level = 1);
+	// ASCにパッシブアビリティ付与
+	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities, int32 Level = 1);
+
+private:
+	// アビリティ付与済みフラグ
+	bool bStartupAbilitiesGiven = false;
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyAbilitySystemComponent.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Characters/Common/AbilitySystem/MyAbilitySystemComponent.h"
+#include "Abilities/MyGameplayAbility.h"
+
+// ASCにアビリティ付与
+void UMyAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities, int32 Level)
+{
+	for (TSubclassOf<UGameplayAbility> AbilityClass : Abilities)
+	{
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, Level);
+		if (const UMyGameplayAbility* MyAbility = Cast<UMyGameplayAbility>(AbilitySpec.Ability))
+		{
+			GiveAbility(AbilitySpec);
+		}
+	}
+	// アビリティ付与完了後にフラグを立ててデリゲートをブロードキャスト
+	bStartupAbilitiesGiven = true;
+}
+
+// ASCにパッシブアビリティ付与
+void UMyAbilitySystemComponent::AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities, int32 Level)
+{
+	for (const TSubclassOf<UGameplayAbility> AbilityClass : PassiveAbilities)
+	{
+		// アビリティ付与と同時にアクティブ化も行う
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, Level);
+		GiveAbilityAndActivateOnce(AbilitySpec);
+	}
+}
+```
+</div>
+<br>
+
+
+## プレイヤーステートの作成
+プロジェクト用のプレイヤーステータクラスを作成します。  
+コンストラクタでアクターをレプリケートする頻度を指定するNetUpdateFrequencyを100に指定します。  
+NetUpdateFrequencyはレプリケートする秒間の頻度で、100を指定すると1秒間に100回(0.01秒間隔)で更新を試みる設定になります。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerState.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/PlayerState.h"
+#include "MyPlayerState.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API AMyPlayerState : public APlayerState
+{
+	GENERATED_BODY()
+	
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerState.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Player/MyPlayerState.h"
+
+```
+</div>
+<br>
+
+
+## キャラクターの作成
+### ベースキャラクターの作成
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyCharacter.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "MyCharacter.generated.h"
+
+UCLASS()
+class ETA_API AMyCharacter : public ACharacter
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this character's properties
+	AMyCharacter();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyCharacter.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Characters/Common/MyCharacter.h"
+
+// Sets default values
+AMyCharacter::AMyCharacter()
+{
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+
+// Called when the game starts or when spawned
+void AMyCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
+// Called every frame
+void AMyCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+// Called to bind functionality to input
+void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+}
+
+```
+</div>
+<br>
+
+### プレイヤーキャラクターの作成
+#### アビリティシステムの初期化  
+アビリティシステムの初期化関数であるInitAbilityActorInfoを呼ぶためにはオーナーアクターとワールドに設置される物理的なアクターの２つが必要です。  
+物理的なアクターはプレイヤーキャラクターなのですが、オーナーアクターはプレイヤーステートになるため、この２つが揃うのはPossessedByが呼ばれた時点となります。
+### エネミーキャラクターの作成
+
+## アビリティーアクター情報の初期化
+
+## レプリケーションモード
+
+キャラクターにはStrength,Intelligence,Health,Manaといったパラメータが存在します。  
+ゲームプレイアビリティではこれらをアトリビュートというfloat値で表し、それを1セットにまとめたものをアトリビュートセットという形でキャラクターに持たせます。
 
