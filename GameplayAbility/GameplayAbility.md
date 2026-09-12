@@ -1,66 +1,104 @@
 # ゲームプレイアビリティシステム
 
-## 目次
+# 目次
 - [ゲームプレイアビリティシステム](#ゲームプレイアビリティシステム)
-	- [目次](#目次)
-	- [アビリティシステムの概要](#アビリティシステムの概要)
-		- [アビリティシステムコンポーネント](#アビリティシステムコンポーネント)
-		- [アトリビュートセット](#アトリビュートセット)
-		- [ゲームプレイアビリティ](#ゲームプレイアビリティ)
-		- [アビリティタスク](#アビリティタスク)
-		- [ゲームプレイエフェクト](#ゲームプレイエフェクト)
-		- [ゲームプレイキュー](#ゲームプレイキュー)
-		- [ゲームプレイタグ](#ゲームプレイタグ)
-	- [アビリティシステムの環境構築](#アビリティシステムの環境構築)
-		- [プラグインの有効化](#プラグインの有効化)
-		- [Gameplay Abilitiesプラグインを有効化](#gameplay-abilitiesプラグインを有効化)
-		- [Build.csにモジュールを追加](#buildcsにモジュールを追加)
-	- [アビリティシステムのクラス構成](#アビリティシステムのクラス構成)
-		- [プレイヤー](#プレイヤー)
-		- [エネミー](#エネミー)
+- [目次](#目次)
+- [アビリティシステムの概要](#アビリティシステムの概要)
+	- [アビリティシステムコンポーネント](#アビリティシステムコンポーネント)
+	- [アトリビュートセット](#アトリビュートセット)
+	- [ゲームプレイアビリティ](#ゲームプレイアビリティ)
+	- [アビリティタスク](#アビリティタスク)
+	- [ゲームプレイエフェクト](#ゲームプレイエフェクト)
+	- [ゲームプレイキュー](#ゲームプレイキュー)
+	- [ゲームプレイタグ](#ゲームプレイタグ)
+- [アビリティシステムの環境構築](#アビリティシステムの環境構築)
+	- [プラグインの有効化](#プラグインの有効化)
+	- [Gameplay Abilitiesプラグインを有効化](#gameplay-abilitiesプラグインを有効化)
+	- [Build.csにモジュールを追加](#buildcsにモジュールを追加)
+- [アビリティシステムのクラス構成](#アビリティシステムのクラス構成)
+	- [プレイヤー](#プレイヤー)
+	- [エネミー](#エネミー)
+- [アビリティの作成](#アビリティの作成)
+	- [ダイナミックタグの設定](#ダイナミックタグの設定)
+	- [ソースコード](#ソースコード)
+- [アトリビュートセットの作成](#アトリビュートセットの作成)
+- [アビリティシステムコンポーネントの作成](#アビリティシステムコンポーネントの作成)
 	- [アビリティシステムのレプリケーション](#アビリティシステムのレプリケーション)
-	- [アビリティの作成](#アビリティの作成)
-	- [アトリビュートセットの作成](#アトリビュートセットの作成)
-	- [アビリティシステムコンポーネントの作成](#アビリティシステムコンポーネントの作成)
-	- [プレイヤーステートの作成](#プレイヤーステートの作成)
-	- [キャラクターの作成](#キャラクターの作成)
-		- [ベースキャラクターの作成](#ベースキャラクターの作成)
-		- [プレイヤーキャラクターの作成](#プレイヤーキャラクターの作成)
-			- [アビリティシステムの初期化](#アビリティシステムの初期化)
-		- [エネミーキャラクターの作成](#エネミーキャラクターの作成)
-	- [アビリティーアクター情報の初期化](#アビリティーアクター情報の初期化)
-	- [レプリケーションモード](#レプリケーションモード)
+	- [アビリティの付与](#アビリティの付与)
+		- [アビリティ](#アビリティ)
+		- [パッシブアビリティ](#パッシブアビリティ)
+		- [アビリティスペック](#アビリティスペック)
+	- [アビリティごとの処理](#アビリティごとの処理)
+	- [アセットタグからアビリティスペックを取得](#アセットタグからアビリティスペックを取得)
+	- [アビリティスペックからアセットタグを取得](#アビリティスペックからアセットタグを取得)
+	- [汎用イベントをアビリティへ通知](#汎用イベントをアビリティへ通知)
+	- [アビリティのアクティベート](#アビリティのアクティベート)
+	- [アビリティのレベル設定](#アビリティのレベル設定)
+	- [ソースコード](#ソースコード-1)
+- [プレイヤーステートの作成](#プレイヤーステートの作成)
+	- [コンストラクタ](#コンストラクタ)
+	- [レプリケーションの設定](#レプリケーションの設定)
+	- [アビリティシステムコンポーネントの取得関数](#アビリティシステムコンポーネントの取得関数)
+	- [ソースコード](#ソースコード-2)
+- [キャラクターのベース作成](#キャラクターのベース作成)
+	- [アビリティシステムコンポーネントとアトリビュートセット](#アビリティシステムコンポーネントとアトリビュートセット)
+	- [初期付与するアビリティとエフェクト](#初期付与するアビリティとエフェクト)
+	- [エフェクトの適用関数](#エフェクトの適用関数)
+	- [アビリティシステムの初期化](#アビリティシステムの初期化)
+	- [ソースコード](#ソースコード-3)
+- [プレイヤーキャラクターの作成](#プレイヤーキャラクターの作成)
+	- [アビリティシステムの初期化](#アビリティシステムの初期化-1)
+	- [ソースコード](#ソースコード-4)
+- [エネミーキャラクターの作成](#エネミーキャラクターの作成)
+	- [ソースコード](#ソースコード-5)
+- [プレイヤーコントローラーの作成](#プレイヤーコントローラーの作成)
+	- [ゲームモードの作成](#ゲームモードの作成)
+- [ゲームインスタンスの作成](#ゲームインスタンスの作成)
+- [起動確認](#起動確認)
+	- [プロジェクト設定](#プロジェクト設定)
+	- [デバッグ表示](#デバッグ表示)
+- [ゲームプレイエフェクト](#ゲームプレイエフェクト-1)
+	- [ゲームプレイエフェクトの特徴](#ゲームプレイエフェクトの特徴)
+		- [データのみ](#データのみ)
+		- [Blueprintベースで作成する](#blueprintベースで作成する)
+		- [モディファイアとエグゼキューションによるアトリビュートを変更](#モディファイアとエグゼキューションによるアトリビュートを変更)
+		- [期間ポリシー](#期間ポリシー)
+		- [スタッキング](#スタッキング)
+		- [ゲームプレイタグの追加](#ゲームプレイタグの追加)
+		- [アビリティの付与](#アビリティの付与-1)
+	- [ゲームプレイエフェクトスペック](#ゲームプレイエフェクトスペック)
+	- [ゲームプレイエフェクトのユースケース](#ゲームプレイエフェクトのユースケース)
 
-## アビリティシステムの概要
+# アビリティシステムの概要
 アビリティシステムは以下のパーツから構成されています。  
 これらが連携することによりアビリティシステムの機能を実現しています。
-### アビリティシステムコンポーネント
+## アビリティシステムコンポーネント
 アビリティシステムの基本となるコンポーネントです。対象のアクターにアタッチしてアビリティシステム全般の制御を行います。
-### アトリビュートセット
+## アトリビュートセット
 キャラクターが保持するSTR,INT,DEX,HP,MPなどのパラメータセットです。アビリティシステムコンポーネントと同様に対象のアクターにアタッチして保持、管理します。
-### ゲームプレイアビリティ
+## ゲームプレイアビリティ
 ジャンプ、攻撃、防御などのアクションを記述するクラスです。アクターはアビリティシステムコンポーネントにアビリティを登録することでアクションが実行できるようになります。  
 アビリティは１つのクラスとして独立したコードで書けるのでアクター本体の実装に依存せずに機能を実装できます。また、アタッチ、デタッチするだけでアクターへの能力付与、削除が簡単にできるのでメンテナンス性に優れます。
-### アビリティタスク
+## アビリティタスク
 ゲームプレイアビリティで使われるワーカースレッドのようなものです。ゲームプレイアビリティはアビリティ開始、終了、中断などタイミングでコールバックを受けるので、そこに必要なロジックを記述できますが、呪文や溜め攻撃のような開始～待機～発動といった時間経過を伴うものはゲームプレイアビリティy内でアビリティタスクを生成して処理を行います。
-### ゲームプレイエフェクト
+## ゲームプレイエフェクト
 アトリビュートの値を変更させるものです。アトリビュートの値は通常、直接書き換えるものではなく、アビリティシステムコンポーネントにゲームプレイエフェクトを適用することにより変化させます。例えば敵からダメージを受けてHPを減少させる場合、HPを減らすゲームプレイエフェクトを作成してアビリティシステムコンポーネントに適用させます。また、ゲームプレイエフェクトは持続時間なども設定できるので一定期間アトリビュート値を変化させるバフ、デバフなどにも使用できます。
-### ゲームプレイキュー
+## ゲームプレイキュー
 ゲームプレイエフェクトを適用したことにより発生するパーティクルやSEなどのエフェクトを定義します。ゲームプレイキューはレプリケートに対応しているので、対象のアクターにゲームプレイエフェクトを適用すると各クライアントでも自動的にエフェクトを表示してくれます。
-### ゲームプレイタグ
+## ゲームプレイタグ
 ゲームプレイアビリティシステム全般にわたって使用されるタグ定義です。ゲームプレイアビリティの起動からキャラクターのステート管理、イベント発生時の通知パラメータなど幅広く利用されます。
 
-## アビリティシステムの環境構築
+# アビリティシステムの環境構築
 アビリティシステムを使用するためには以下の環境設定が必要になります。
 
-### プラグインの有効化
+## プラグインの有効化
 GameplayAbilityを使うためにはプラグインを以下の手順で有効化する必要があります。  
 
-### Gameplay Abilitiesプラグインを有効化
+## Gameplay Abilitiesプラグインを有効化
 エディタのプラグインで、Gameplay Abilitiesを有効化にします。  
 エディタを再起動させます
 
-### Build.csにモジュールを追加  
+## Build.csにモジュールを追加  
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
   MyProject.Build.cs
 </div>
@@ -97,47 +135,28 @@ public class Eta : ModuleRules
 </div>
 <br>
 
-## アビリティシステムのクラス構成
+# アビリティシステムのクラス構成
 アトリビュートを持ちアクションを行うのはアクターなので、アクターにアビリティシステムコンポーネントとアトリビュートセットを持たせるのが自然な形なのですが、その実装だとプレイヤーが操作しているキャラクターが死んでリスポーンする場合などに問題になります。  
 そこでライフタイムが一代限りの敵などのキャラクターについてはアビリティシステムコンポーネントとアトリビュートを直接持たせ、プレイヤーキャラクターについてはプレイヤーステートでアビリティシステムコンポーネントとアトリビュートを保持し、キャラクター側にはそのポインタを持たせる設計にします。
-### プレイヤー
+## プレイヤー
 - プレイヤーステート
   - アビリティシステムコンポーネント
   - アトリビュートセット
 - プレイヤーキャラクター
   - アビリティシステムコンポーネントのポインタ(プレイヤーステート保持)
   - アトリビュートセットのポインタ(プレイヤーステート保持)
-### エネミー
+## エネミー
 - キャラクター
   - アビリティシステムコンポーネント
   - アトリビュートセット
+<br>
 
-## アビリティシステムのレプリケーション
-アビリティシステムはネットワーク対応で３つのレプリケーションモードがあります。このモードによりゲームプレイエフェクトのレプリケーションのされ方が変わります。
-- 完全 (Full)
-  - アクティブなGEのすべての詳細（持続時間、スタック数、タグのカウントなど）をすべてのクライアントにレプリケートします。
-  - プレイヤーステータスを他者から完全に把握する必要がある場合に向いていますが、ネットワーク帯域の負荷が高くなります。
-- 混合 (Mixed)
-  - 所有している本人（Local Player / Owner）には「完全詳細」を送り、他のプレイヤーや観戦者には「最小限（Minimal）」の情報だけを送ります。
-  - 自分のUIには正確なクールダウンやバフ・デバフの残り時間を表示させつつ、他人からは見えないようにしてネットワーク負荷を抑える、プレイヤーキャラクターの標準的な推奨設定です
-- 最小 (Minimal)
-  - 所有権に関わらず、付与されているタグやゲームプレイキュー（Gameplay Cue）の情報のみを最小限レプリケートします。
-  - 内部的なダメージ計算や詳細なスタック数を他のクライアントが知る必要のない、数多くスポーンするAIや敵キャラクター（Enemy）に最適です。
-
-上記を鑑みて今回のソースではアビリティシステムコンポーネントについてはプレイヤーキャラクターのMixed、エネミーキャラクターについてはMinimalを設定します。  
-
-なお、アビリティシステムコンポーネントのレプリケーションモードに混合(Mixed)を使う場合、以下の注意点があります。
-
-- アビリティシステムコンポーネントの初期化関数InitAbilityActorInfoで指定するオーナーアクターはコントローラークラスである必要がある。
-- プレイヤーステートのオーナーはコントローラーなので、プレイヤーステートをオーナーアクターに指定するのは問題ない。
-- オーナーアクターがプレイヤーコントローラーやプレイヤーステートではない場合は、オーナーアクターのオーナーにはSetOwnerでコントローラーを指定する必要がある。
-
-今回のソースでは、プレイヤーキャラクターが混合 (Mixed)を使用するため、InitAbilityActorInfoで指定するオーナーアクターはプレイヤーステートになります。
-
-## アビリティの作成
-プロジェクト用のアビリティクラスを作成します。
+# アビリティの作成
+プロジェクト用のアビリティクラスを作成します。GameplayAbilityを派生させます。
+## ダイナミックタグの設定
+## ソースコード
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyGameplayAbility.h
+  MyAbility.h
 </div>
 <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
 
@@ -148,36 +167,40 @@ public class Eta : ModuleRules
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "MyGameplayAbility.generated.h"
+#include "MyAbility.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ETA_API UMyGameplayAbility : public UGameplayAbility
+class ETA_API UMyAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 	
+public:
+	// アビリティ付与時に設定するダイナミックタグ
+	UPROPERTY(EditDefaultsOnly, Category = "Tags")
+	FGameplayTag DynamicTag;
 };
 ```
 </div>
 <br>
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyGameplayAbility.cpp
+  MyAbility.cpp
 </div>
 <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
 
 ```cpp
-// Copyright MyGameCompany. All Rights Reserved.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Characters/Common/AbilitySystem/Abilities/MyGameplayAbility.h"
+#include "AbilitySystem/Abilities/MyAbility.h"
 
 ```
 </div>
 <br>
 
-## アトリビュートセットの作成
+# アトリビュートセットの作成
 アトリビュートセットクラスを作成し、以下の実装を行います。
 - ゲームで使用するアトリビュートの定義
   - プライマリアトリビュート  
@@ -444,10 +467,9 @@ private:
 <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
 
 ```cpp
-// Fill out your copyright notice in the Description page of Project Settings.
+//  Copyright MyGameCompany. All Rights Reserved.
 
-
-#include "Characters/Common/AbilitySystem/MyAttributeSet.h"
+#include "AbilitySystem/MyAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 
@@ -630,10 +652,105 @@ void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 </div>
 <br>
 
-## アビリティシステムコンポーネントの作成
+# アビリティシステムコンポーネントの作成
 アビリティシステムの基幹となるアビリティシステムコンポーネントを作成します。  
-ここではキャラクターに通常のアビリティとパッシブアビリティの2種類を与える関数を用意します。パッシブアビリティは付与とアクティベートが同時に行われるアビリティになります。
+アビリティシステムコンポーネントには以下の機能を持たせます。
 
+## アビリティシステムのレプリケーション
+アビリティシステムはネットワーク対応で３つのレプリケーションモードがあります。このモードによりゲームプレイエフェクトのレプリケーションのされ方が変わります。
+- 完全 (Full)
+  - アクティブなGEのすべての詳細（持続時間、スタック数、タグのカウントなど）をすべてのクライアントにレプリケートします。
+  - プレイヤーステータスを他者から完全に把握する必要がある場合に向いていますが、ネットワーク帯域の負荷が高くなります。
+- 混合 (Mixed)
+  - 所有している本人（Local Player / Owner）には「完全詳細」を送り、他のプレイヤーや観戦者には「最小限（Minimal）」の情報だけを送ります。
+  - 自分のUIには正確なクールダウンやバフ・デバフの残り時間を表示させつつ、他人からは見えないようにしてネットワーク負荷を抑える、プレイヤーキャラクターの標準的な推奨設定です
+- 最小 (Minimal)
+  - 所有権に関わらず、付与されているタグやゲームプレイキュー（Gameplay Cue）の情報のみを最小限レプリケートします。
+  - 内部的なダメージ計算や詳細なスタック数を他のクライアントが知る必要のない、数多くスポーンするAIや敵キャラクター（Enemy）に最適です。
+
+上記を鑑みて今回のソースではアビリティシステムコンポーネントについてはプレイヤーキャラクターのMixed、エネミーキャラクターについてはMinimalを設定します。  
+
+なお、アビリティシステムコンポーネントのレプリケーションモードに混合(Mixed)を使う場合、以下の注意点があります。
+
+- アビリティシステムコンポーネントの初期化関数InitAbilityActorInfoで指定するオーナーアクターはコントローラークラスである必要がある。
+- プレイヤーステートのオーナーはコントローラーなので、プレイヤーステートをオーナーアクターに指定するのは問題ない。
+- オーナーアクターがプレイヤーコントローラーやプレイヤーステートではない場合は、オーナーアクターのオーナーにはSetOwnerでコントローラーを指定する必要がある。
+
+今回のソースでは、プレイヤーキャラクターが混合 (Mixed)を使用するため、InitAbilityActorInfoで指定するオーナーアクターはプレイヤーステートになります。
+
+## アビリティの付与
+通常アビリティとパッシブアビリティをアビリティシステムに付与します。  
+必要に応じてキャラクタークラスから呼び出されることを想定しています。
+```cpp
+// ASCにアビリティ付与
+void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities, int32 Level = 1);
+// ASCにパッシブアビリティ付与
+void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities, int32 Level = 1);
+```
+### アビリティ
+通常アビリティは必要に応じて都度アクティベート処理が実行されます。
+### パッシブアビリティ
+パッシブアビリティは、付与と同時にアクティベートが行われるアビリティになります。
+### アビリティスペック
+アビリティスペックはコンポーネントにアビリティが付与されたときに内部で生成・保持される「付与済みアビリティのレコード」です。付与されたアビリティに対する一種のハンドルのようなものです。  
+アビリティのクラス、レベル、入力ID（ホットキー割当て）、一意のハンドルなどを保持していて、このスペックを使ってアビリティを起動/停止したり、参照・削除することができます。
+
+## アビリティごとの処理
+所有している各アビリティごとにコールバックを呼び出します。
+```cpp
+// アビリティごとに処理を行う
+void ForEachAbility(const FForEachAbility& Delegate);
+```
+## アセットタグからアビリティスペックを取得
+アビリティにはアセットタグを設定することができます。  
+この関数では指定したアセットタグを持つアビリティのスペックを取得します。  
+```cpp
+// アセットタグからアビリティスペックを取得する
+FGameplayAbilitySpec* GetSpecFromAssetTag(const FGameplayTag& AssetTag);
+```
+## アビリティスペックからアセットタグを取得
+アビリティスペックから、対象のアビリティのタグを取得することができます。  
+アセットタグとダイナミックタグの2種類のタグを取得する関数があります。
+```cpp
+// AbilitySpecから指定した名前を持つのアセットタグ取得する
+FGameplayTag GetAssetTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, const FName& TagName) const;
+
+// AbilitySpecから指定した名前を持つのアセットタグ取得する
+FGameplayTag GetDynamicTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, const FName& TagName) const;
+```
+## 汎用イベントをアビリティへ通知
+アビリティシステムはアビリティに対して汎用イベントを送ることができます。  
+アビリティ側ではWaitInputPress / WaitInputRelease / WaitGenericEventなどのイベント待ち受け処理によりイベントの発生を受け取って処理を実行することができます。  
+送り先としてアビリティのアセットタグ、ダイナミックを指定する２関数があります。
+```cpp
+// 汎用レプリケートイベントをアビリティへ通知する
+// 主にWaitInputPress / WaitInputRelease / WaitGenericEvent 等で待機しているアビリティへ入力や汎用イベントを伝える用
+void InvokeReplicatedEventByTag(const FGameplayTag& AssetTag, EAbilityGenericReplicatedEvent::Type EventType);
+void InvokeReplicatedEventByDynamicTag(const FGameplayTag& DynamicTag, EAbilityGenericReplicatedEvent::Type EventType);
+```
+
+## アビリティのアクティベート
+付与されたアビリティをアクティベートします。アセットタグによる起動、ダイナミックタグによる起動の2種類があります。
+```cpp
+// アビリティをタグでアクティブ化する
+UFUNCTION(BlueprintCallable, Category = "Abilities")
+bool TryActivateAbilityByAssetTag(const FGameplayTag& AssetTag, bool bAllowRemoteActivation = true);
+UFUNCTION(BlueprintCallable, Category = "Abilities")
+bool TryActivateAbilityByDynamicTag(const FGameplayTag& DynamicTag, bool bAllowRemoteActivation = true);
+```
+
+## アビリティのレベル設定
+アビリティにはレベルが存在します。  
+アビリティシステムがアトリビュートに変化を加えようとしたときに、エフェクトスペックを生成して対象のアビリティシステムに適用するのですが、このエフェクトペックにアビリティのレベルを指定すると、エフェクトの効果量がレベルに応じたものになります。  
+また、アビリティ側の内部実装で、アビリティスペックのレベルを参照してダメージ、クールダウンタイム、射撃数などの挙動をスケールさせることもできます。
+```cpp
+// アビリティのレベルを更新（クライアントはサーバーに要求する）
+UFUNCTION(BlueprintCallable, Category = "Abilities")
+void SetAbilityLevel(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel);
+
+```
+
+## ソースコード
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
   MyAbilitySystemComponent.h
 </div>
@@ -646,7 +763,16 @@ void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTagContainer.h"
 #include "MyAbilitySystemComponent.generated.h"
+
+// 前方宣言
+struct FGameplayAbilitySpec;
+
+// アビリティが付与されたときにブロードキャストするためのデリゲートの型を定義
+DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
+// アビリティごとに処理を行うためのデリゲートの型を定義
+DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
 
 /**
  * 
@@ -662,7 +788,48 @@ public:
 	// ASCにパッシブアビリティ付与
 	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities, int32 Level = 1);
 
+	// アビリティごとに処理を行う
+	void ForEachAbility(const FForEachAbility& Delegate);
+
+	// アセットタグからアビリティスペックを取得する
+	FGameplayAbilitySpec* GetSpecFromAssetTag(const FGameplayTag& AssetTag);
+
+	// AbilitySpecから指定した名前を持つのアセットタグ取得する
+	FGameplayTag GetAssetTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, const FName& TagName) const;
+
+	// AbilitySpecから指定した名前を持つのアセットタグ取得する
+	FGameplayTag GetDynamicTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, const FName& TagName) const;
+
+	// 汎用レプリケートイベントをアビリティへ通知する
+	// 主にWaitInputPress / WaitInputRelease / WaitGenericEvent 等で待機しているアビリティへ入力や汎用イベントを伝える用
+	void InvokeReplicatedEventByTag(const FGameplayTag& AssetTag, EAbilityGenericReplicatedEvent::Type EventType);
+	void InvokeReplicatedEventByDynamicTag(const FGameplayTag& DynamicTag, EAbilityGenericReplicatedEvent::Type EventType);
+
+	// アビリティをタグでアクティブ化する
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool TryActivateAbilityByAssetTag(const FGameplayTag& AssetTag, bool bAllowRemoteActivation = true);
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool TryActivateAbilityByDynamicTag(const FGameplayTag& DynamicTag, bool bAllowRemoteActivation = true);
+
+	// アビリティのレベルを更新（クライアントはサーバーに要求する）
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	void SetAbilityLevel(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel);
+
+	// アビリティが付与されたときにブロードキャストするデリゲート
+	FAbilitiesGiven AbilitiesGivenDelegate;
+
+protected:
+	// 実行可能アビリティの配列がレプリケートされたときに呼び出される関数をオーバーライド
+	virtual void OnRep_ActivateAbilities() override;
+
 private:
+	// サーバーRPC：クライアントからの要求をサーバーで処理する
+	UFUNCTION(Server, Reliable)
+	void ServerSetAbilityLevel(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel);
+
+	// サーバー上で実際にレベルを変更する内部実装
+	void SetAbilityLevelInternal(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel);
+
 	// アビリティ付与済みフラグ
 	bool bStartupAbilitiesGiven = false;
 };
@@ -678,8 +845,8 @@ private:
 // Copyright MyGameCompany. All Rights Reserved.
 
 
-#include "Characters/Common/AbilitySystem/MyAbilitySystemComponent.h"
-#include "Abilities/MyGameplayAbility.h"
+#include "AbilitySystem/MyAbilitySystemComponent.h"
+#include "Abilities/MyAbility.h"
 
 // ASCにアビリティ付与
 void UMyAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities, int32 Level)
@@ -687,13 +854,16 @@ void UMyAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<U
 	for (TSubclassOf<UGameplayAbility> AbilityClass : Abilities)
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, Level);
-		if (const UMyGameplayAbility* MyAbility = Cast<UMyGameplayAbility>(AbilitySpec.Ability))
+		if (const UMyAbility* MyAbility = Cast<UMyAbility>(AbilitySpec.Ability))
 		{
+			// DynamicAbilityTagsにアクション入力タグを設定
+			AbilitySpec.GetDynamicSpecSourceTags().AddTag(MyAbility->DynamicTag);
 			GiveAbility(AbilitySpec);
 		}
 	}
 	// アビリティ付与完了後にフラグを立ててデリゲートをブロードキャスト
 	bStartupAbilitiesGiven = true;
+	AbilitiesGivenDelegate.Broadcast();
 }
 
 // ASCにパッシブアビリティ付与
@@ -706,15 +876,230 @@ void UMyAbilitySystemComponent::AddCharacterPassiveAbilities(const TArray<TSubcl
 		GiveAbilityAndActivateOnce(AbilitySpec);
 	}
 }
+
+void UMyAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate)
+{
+	FScopedAbilityListLock ActiveScopeLock(*this);
+	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (!Delegate.ExecuteIfBound(AbilitySpec))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to execute delegate in %hs"), __FUNCTION__);
+		}
+	}
+}
+
+FGameplayAbilitySpec* UMyAbilitySystemComponent::GetSpecFromAssetTag(const FGameplayTag& AssetTag)
+{
+	FScopedAbilityListLock ActiveScopeLoc(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		for (FGameplayTag Tag : AbilitySpec.Ability.Get()->GetAssetTags())
+		{
+			if (Tag.MatchesTag(AssetTag))
+			{
+				return &AbilitySpec;
+			}
+		}
+	}
+	return nullptr;
+}
+
+FGameplayTag UMyAbilitySystemComponent::GetAssetTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, const FName& TagName) const
+{
+	for (FGameplayTag Tag : AbilitySpec.Ability.Get()->GetAssetTags())
+	{
+		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(TagName)))
+		{
+			return Tag;
+		}
+	}
+	return FGameplayTag();
+}
+
+FGameplayTag UMyAbilitySystemComponent::GetDynamicTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, const FName& TagName) const
+{
+	for (FGameplayTag Tag : AbilitySpec.GetDynamicSpecSourceTags())
+	{
+		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(TagName)))
+		{
+			return Tag;
+		}
+	}
+	return FGameplayTag();
+}
+
+void UMyAbilitySystemComponent::InvokeReplicatedEventByTag(const FGameplayTag& AssetTag, EAbilityGenericReplicatedEvent::Type EventType)
+{
+	if (!AssetTag.IsValid()) return;
+
+	FScopedAbilityListLock ActiveScopeLoc(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilitySpec.Ability.Get()->GetAssetTags().HasTagExact(AssetTag))
+		{
+			// アクティベート可能なアビリティで、指定のインプットタグを持つアビリティに対して処理を行う
+			AbilitySpecInputPressed(AbilitySpec);
+			// WaitInputPress / WaitInputRelease / WaitGenericEvent で処理を受け取れるようにInvokeReplicatedEventを呼び出す
+			if (AbilitySpec.IsActive())
+			{
+				TArray<UGameplayAbility*> AbilityInstances = AbilitySpec.GetAbilityInstances();
+				for (UGameplayAbility* AbilityInstance : AbilityInstances)
+				{
+					InvokeReplicatedEvent(EventType, AbilitySpec.Handle, AbilityInstance->GetCurrentActivationInfo().GetActivationPredictionKey());
+				}
+			}
+		}
+	}
+}
+
+void UMyAbilitySystemComponent::InvokeReplicatedEventByDynamicTag(const FGameplayTag& DynamicTag, EAbilityGenericReplicatedEvent::Type EventType)
+{
+	if (!DynamicTag.IsValid()) return;
+
+	FScopedAbilityListLock ActiveScopeLoc(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(DynamicTag))
+		{
+			// アクティベート可能なアビリティで、指定のインプットタグを持つアビリティに対して処理を行う
+			AbilitySpecInputPressed(AbilitySpec);
+			// WaitInputPress / WaitInputRelease / WaitGenericEvent で処理を受け取れるようにInvokeReplicatedEventを呼び出す
+			if (AbilitySpec.IsActive())
+			{
+				TArray<UGameplayAbility*> AbilityInstances = AbilitySpec.GetAbilityInstances();
+				for (UGameplayAbility* AbilityInstance : AbilityInstances)
+				{
+					InvokeReplicatedEvent(EventType, AbilitySpec.Handle, AbilityInstance->GetCurrentActivationInfo().GetActivationPredictionKey());
+				}
+			}
+		}
+	}
+}
+
+bool UMyAbilitySystemComponent::TryActivateAbilityByAssetTag(const FGameplayTag& AssetTag, bool bAllowRemoteActivation)
+{
+	if (!AssetTag.IsValid()) return false;
+
+	bool bActivatedAny = false;
+	FScopedAbilityListLock ActiveScopeLoc(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilitySpec.Ability.Get()->GetAssetTags().HasTagExact(AssetTag))
+		{
+			AbilitySpecInputPressed(AbilitySpec);
+			if (!AbilitySpec.IsActive())
+			{
+				if (TryActivateAbility(AbilitySpec.Handle, bAllowRemoteActivation))
+				{
+					bActivatedAny = true;
+				}
+			}
+		}
+	}
+	return bActivatedAny;
+}
+
+bool UMyAbilitySystemComponent::TryActivateAbilityByDynamicTag(const FGameplayTag& DynamicTag, bool bAllowRemoteActivation)
+{
+	if (!DynamicTag.IsValid()) return false;
+
+	bool bActivatedAny = false;
+	FScopedAbilityListLock ActiveScopeLoc(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(DynamicTag))
+		{
+			AbilitySpecInputPressed(AbilitySpec);
+			if (!AbilitySpec.IsActive())
+			{
+				if (TryActivateAbility(AbilitySpec.Handle, bAllowRemoteActivation))
+				{
+					bActivatedAny = true;
+				}
+			}
+		}
+	}
+	return bActivatedAny;
+}
+
+void UMyAbilitySystemComponent::SetAbilityLevel(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel)
+{
+	// クライアントから呼ばれた場合はサーバーRPCで要求する
+	if (!GetOwner())
+	{
+		return;
+	}
+
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerSetAbilityLevel(AbilityClass, NewLevel);
+		return;
+	}
+
+	// サーバー上なら直接実行
+	SetAbilityLevelInternal(AbilityClass, NewLevel);
+}
+
+void UMyAbilitySystemComponent::ServerSetAbilityLevel_Implementation(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel)
+{
+	// サーバー実行
+	SetAbilityLevelInternal(AbilityClass, NewLevel);
+}
+
+void UMyAbilitySystemComponent::SetAbilityLevelInternal(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel)
+{
+	if (!AbilityClass) return;
+
+	// 指定クラスに一致するすべてのスペックのレベルを更新
+	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (Spec.Ability && Spec.Ability->GetClass() == AbilityClass)
+		{
+			Spec.Level = NewLevel;
+			// 必要ならここで AbilityInstance の再初期化や通知を行う
+		}
+	}
+
+	// 変更をクライアントに反映させるためにオーナーのネットワーク更新を促す
+	if (GetOwner())
+	{
+		GetOwner()->ForceNetUpdate();
+	}
+}
+
+// 実行可能アビリティの配列がレプリケートされたときに呼び出される関数をオーバーライド
+void UMyAbilitySystemComponent::OnRep_ActivateAbilities()
+{
+	Super::OnRep_ActivateAbilities();
+
+	// AbilitiesGivenDelegateはクライアントでは呼び出されないため(AddCharacterAbilitiesはサーバーでのみ呼び出される)
+	// クライアントではActivatableAbilitiesがレプリケートされたときにアビリティ付与のデリゲートをブロードキャストする
+	if (!bStartupAbilitiesGiven)
+	{
+		bStartupAbilitiesGiven = true;
+		AbilitiesGivenDelegate.Broadcast();
+	}
+}
 ```
 </div>
 <br>
 
 
-## プレイヤーステートの作成
+# プレイヤーステートの作成
 プロジェクト用のプレイヤーステータクラスを作成します。  
-コンストラクタでアクターをレプリケートする頻度を指定するNetUpdateFrequencyを100に指定します。  
+[アビリティシステムのクラス構成](#アビリティシステムのクラス構成)で紹介した通り、プレイヤーステートはプレイヤーキャラクター用のアビリティシステムコンポーネントとアトリビュートを保持し、IAbilitySystemInterfaceを継承します。
+## コンストラクタ
+コンストラクタではアビリティシステムコンポーネントとアトリビュートの生成を行い、ネットワーク対応のためレプリケートを有効にします。プレイヤーステートは比較的頻度高く同期が必要なのでNetUpdateFrequencyを100に指定します。  
 NetUpdateFrequencyはレプリケートする秒間の頻度で、100を指定すると1秒間に100回(0.01秒間隔)で更新を試みる設定になります。
+## レプリケーションの設定
+GetLifetimeReplicatedProps関数でどのプロパティをレプリケートするかの設定を登録します。  
+レプリケートしたい変数を追加する場合は、ここにDOREPLIFETIMEマクロで変数を登録します。
+## アビリティシステムコンポーネントの取得関数
+IAbilitySystemInterfaceに定義されているGetAbilitySystemComponent関数をオーバーライドします。  
+シンプルに自身が保持しているコンポーン年とを返すだけです。
+
+## ソースコード
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
   MyPlayerState.h
 </div>
@@ -726,17 +1111,41 @@ NetUpdateFrequencyはレプリケートする秒間の頻度で、100を指定�
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "GameFramework/PlayerState.h"
 #include "MyPlayerState.generated.h"
+
+// 前方宣言
+class UAbilitySystemComponent;
+class UAttributeSet;
 
 /**
  * 
  */
 UCLASS()
-class ETA_API AMyPlayerState : public APlayerState
+class ETA_API AMyPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
+public:
+	AMyPlayerState();
+
+	// レプリケーションの設定
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	// AbilitySystemInterfaceの実装
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	// AttributeSetを取得する関数
+	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+protected:
+	// BPからアクセスできるようにVisibleAnywherを追加
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY()
+	TObjectPtr<UAttributeSet> AttributeSet;
 };
 ```
 </div>
@@ -750,15 +1159,192 @@ class ETA_API AMyPlayerState : public APlayerState
 // Copyright MyGameCompany. All Rights Reserved.
 
 
-#include "Player/MyPlayerState.h"
+#include "MyPlayerState.h"
+#include "AbilitySystem/MyAbilitySystemComponent.h"
+#include "AbilitySystem/MyAttributeSet.h"
 
+
+AMyPlayerState::AMyPlayerState()
+{
+	// アビリティシステムコンポーネント作成
+	AbilitySystemComponent = CreateDefaultSubobject<UMyAbilitySystemComponent>("AbilitySystemComponent");
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	// アトリビュートセット作成
+	AttributeSet = CreateDefaultSubobject<UMyAttributeSet>("AttributeSet");
+
+	// ネットワーク更新頻度を設定
+	SetNetUpdateFrequency(100.f);
+}
+
+// レプリケーションの設定
+void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// レプリケーションする設定
+	// DOREPLIFETIME(AMyPlayerState, MemberVariable);
+}
+
+UAbilitySystemComponent* AMyPlayerState::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
 ```
 </div>
 <br>
 
+# キャラクターのベース作成
+ベースキャラクターにはキャラクターとしてふるまうために必要な機能を実装します。  
+## アビリティシステムコンポーネントとアトリビュートセット
+アビリティシステムコンポーネントとアトリビュートセットは、キャラクターとしては必須なものですがプレイヤーとエネミーで所有者や初期化タイミングが変わるため、ベース側ではポインタのみ保持する形にします。
+```cpp
+UPROPERTY()
+TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-## キャラクターの作成
-### ベースキャラクターの作成
+UPROPERTY()
+TObjectPtr<UAttributeSet> AttributeSet;
+```
+## 初期付与するアビリティとエフェクト
+キャラクターが最初から所持しているアビリティとエフェクトクラスの配列をメンバ変数に所持します。
+これらの変数は、キャラクタークラスをBPに派生させて設定してもOKですし、SetupDefaultAbilitiesAndEffectsをオーバーライドして設定しても動くようにしておきます。
+```cpp
+class ETA_API AMyCharacter : public ACharacter, public IAbilitySystemInterface
+{
+protected:
+	// 初期付与するアビリティとエフェクトを設定する関数
+	virtual void SetupDefaultAbilitiesAndEffects();
+
+private:
+	// キャラクターに初期付与するアビリティ
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
+
+	// キャラクターに初期付与するパッシブアビリティ
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> DefaultPassiveAbilities;
+
+	// キャラクターに初期付与するゲームプレイエフェクト
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TArray<TSubclassOf<UGameplayEffect>> DefaultEffects;
+}
+
+void AMyCharacter::SetupDefaultAbilitiesAndEffects()
+{
+	// DefaultAbilities.Add(MyAbility::StaticClass());
+
+	// DefaultPassiveAbilities.Add(MyPassiveAbility::StaticClass());
+
+	// DefaultEffects.Add(MyGameplayEffect::StaticClass());
+}
+```
+## エフェクトの適用関数
+エフェクトを自分自身に適用する関数です。  
+以下の3ステップが行われます。
+- アビリティシステムコンポーネントからコンテキストハンドルを作成
+- エフェクトクラス、レベル、コンテキストハンドルからエフェクトスペックハンドルを作成
+- エフェクトスペックハンドルを使って自分自身にエフェクトを適用
+```cpp
+class ETA_API AMyCharacter : public ACharacter, public IAbilitySystemInterface
+{
+protected:
+	// ゲームプレイエフェクトを自身に適用
+	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
+}
+
+void AMyCharacter::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const
+{
+	check(IsValid(GetAbilitySystemComponent()));
+	check(GameplayEffectClass);
+
+	// エフェクトは以下の3つのステップで適用される
+
+	// ASCからコンテキストハンドルを作成
+	FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+	ContextHandle.AddSourceObject(this);	// エフェクトのソースオブジェクトは自分自身
+
+	// クラス、レベル、コンテキストハンドルからスペックハンドルを作成
+	const FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(GameplayEffectClass, Level, ContextHandle);
+
+	// スペックハンドルを使ってASCに適用
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
+}
+```
+## アビリティシステムの初期化
+アビリティシステムの初期化関数です。  
+アビリティシステムはアビリティシステムコンポーネント、アトリビュートセット、使用者すべてが揃わないと初期化できないため、ベースクラスではそれらを引数にした関数(InitializeAbilitySystem)のみ用意し、派生クラスから適切なタイミングで呼び出します。  
+```cpp
+class ETA_API AMyCharacter : public ACharacter, public IAbilitySystemInterface
+{
+protected:
+	// エフェクト初期化
+	virtual void InitializeDefaultEffects() const;
+
+	// アビリティ初期化
+	void InitializeDefaultAbilities();
+
+	// アビリティシステムの初期化(ASCのOwner,Avatorが生成されたときに呼び出す)を行う
+	virtual void InitializeAbilitySystem(AActor* InOwnerActor, AActor* InAvatarActor);
+};
+
+void AMyCharacter::InitializeDefaultEffects() const
+{
+	for(auto & EffectClass : DefaultEffects)
+	{
+		ApplyEffectToSelf(EffectClass, 1.f);
+	}
+}
+
+void AMyCharacter::InitializeDefaultAbilities()
+{
+	// デフォルトアビリティをASCに付与
+	UMyAbilitySystemComponent* MyASC = CastChecked<UMyAbilitySystemComponent>(AbilitySystemComponent);
+	if (!HasAuthority()) return;
+
+	MyASC->AddCharacterAbilities(DefaultAbilities);
+	MyASC->AddCharacterPassiveAbilities(DefaultPassiveAbilities);
+}
+
+void AMyCharacter::InitializeAbilitySystem(AActor* InOwnerActor, AActor* InAvatarActor)
+{
+	check(InOwnerActor);
+	check(InAvatarActor);
+
+	// InOwnerActorがAMyPlayerStateの場合は、AMyPlayerStateからASCとAttributeSetを取得
+	if (AMyPlayerState* MyPlayerState = Cast<AMyPlayerState>(InOwnerActor))
+	{
+		// PlayerStateからASCとAttributeSetを取得
+		if (!AbilitySystemComponent)
+		{
+			AbilitySystemComponent = MyPlayerState->GetAbilitySystemComponent();
+		}
+		if (!AttributeSet)
+		{
+			AttributeSet = MyPlayerState->GetAttributeSet();
+		}
+	}
+	check(AbilitySystemComponent);
+	check(AttributeSet);
+
+	// ASCのOwnerとAvatarを設定
+	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, InAvatarActor);
+
+	// キャラクターに初期付与するアビリティとエフェクトを設定
+	SetupDefaultAbilitiesAndEffects();
+
+	// デフォルトエフェクトを適用
+	InitializeDefaultEffects();
+
+	// デフォルトアビリティを付与
+	InitializeDefaultAbilities();
+
+	// ASC登録時のデリゲートをブロードキャスト
+	OnAscRegistered.Broadcast(AbilitySystemComponent, AttributeSet);
+}
+```
+
+## ソースコード
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
   MyCharacter.h
 </div>
@@ -770,11 +1356,21 @@ class ETA_API AMyPlayerState : public APlayerState
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
 #include "MyCharacter.generated.h"
 
+// 前方宣言
+class UAbilitySystemComponent;
+class UAttributeSet;
+class UGameplayEffect;
+class UGameplayAbility;
+
+// ASCが登録されたときに発行するデリゲート
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnASCRegistered, UAbilitySystemComponent*, UAttributeSet*)
+
 UCLASS()
-class ETA_API AMyCharacter : public ACharacter
+class ETA_API AMyCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -782,17 +1378,52 @@ public:
 	// Sets default values for this character's properties
 	AMyCharacter();
 
+	// プロパティのレプリケーションで使用する関数
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	/** IAbilitySystemInterface */
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
+	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+	/** end IAbilitySystemInterface */
+
+
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY()
+	TObjectPtr<UAttributeSet> AttributeSet;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// ASC登録時にブロードキャストするデリゲート
+	FOnASCRegistered OnAscRegistered;
 
+	// 初期付与するアビリティとエフェクトを設定する関数
+	virtual void SetupDefaultAbilitiesAndEffects();
+
+	// ゲームプレイエフェクトを自身に適用
+	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
+
+	// エフェクト初期化
+	virtual void InitializeDefaultEffects() const;
+
+	// アビリティ初期化
+	void InitializeDefaultAbilities();
+
+	// アビリティシステムの初期化(ASCのOwner,Avatorが生成されたときに呼び出す)を行う
+	virtual void InitializeAbilitySystem(AActor* InOwnerActor, AActor* InAvatarActor);
+
+private:
+	// キャラクターに初期付与するアビリティ
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
+
+	// キャラクターに初期付与するパッシブアビリティ
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> DefaultPassiveAbilities;
+
+	// キャラクターに初期付与するゲームプレイエフェクト
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TArray<TSubclassOf<UGameplayEffect>> DefaultEffects;
 };
 ```
 </div>
@@ -806,51 +1437,579 @@ public:
 // Copyright MyGameCompany. All Rights Reserved.
 
 
-#include "Characters/Common/MyCharacter.h"
+#include "Characters/Base/MyCharacter.h"
+#include "AbilitySystem/MyAbilitySystemComponent.h"
+#include "Controller/Player/MyPlayerState.h"
+
 
 // Sets default values
 AMyCharacter::AMyCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 }
 
-// Called when the game starts or when spawned
-void AMyCharacter::BeginPlay()
+// プロパティのレプリケーションで使用する関数
+void AMyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::BeginPlay();
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// DOREPLIFETIME(AMyCharacter, bIsStunned);
+}
+
+
+void AMyCharacter::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const
+{
+	check(IsValid(GetAbilitySystemComponent()));
+	check(GameplayEffectClass);
+
+	// エフェクトは以下の3つのステップで適用される
+
+	// ASCからコンテキストハンドルを作成
+	FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+	ContextHandle.AddSourceObject(this);	// エフェクトのソースオブジェクトは自分自身
+
+	// クラス、レベル、コンテキストハンドルからスペックハンドルを作成
+	const FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(GameplayEffectClass, Level, ContextHandle);
+
+	// スペックハンドルを使ってASCに適用
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
+}
+
+void AMyCharacter::InitializeDefaultEffects() const
+{
+	for(auto & EffectClass : DefaultEffects)
+	{
+		ApplyEffectToSelf(EffectClass, 1.f);
+	}
+}
+
+void AMyCharacter::InitializeDefaultAbilities()
+{
+	// デフォルトアビリティをASCに付与
+	UMyAbilitySystemComponent* MyASC = CastChecked<UMyAbilitySystemComponent>(AbilitySystemComponent);
+	if (!HasAuthority()) return;
+
+	MyASC->AddCharacterAbilities(DefaultAbilities);
+	MyASC->AddCharacterPassiveAbilities(DefaultPassiveAbilities);
+}
+
+void AMyCharacter::SetupDefaultAbilitiesAndEffects()
+{
 	
+	// DefaultAbilities.Add(MyAbility::StaticClass());
+
+	// DefaultPassiveAbilities.Add(MyPassiveAbility::StaticClass());
+
+	// DefaultEffects.Add(MyGameplayEffect::StaticClass());
 }
 
-// Called every frame
-void AMyCharacter::Tick(float DeltaTime)
+void AMyCharacter::InitializeAbilitySystem(AActor* InOwnerActor, AActor* InAvatarActor)
 {
-	Super::Tick(DeltaTime);
+	check(InOwnerActor);
+	check(InAvatarActor);
 
-}
+	// InOwnerActorがAMyPlayerStateの場合は、AMyPlayerStateからASCとAttributeSetを取得
+	if (AMyPlayerState* MyPlayerState = Cast<AMyPlayerState>(InOwnerActor))
+	{
+		// PlayerStateからASCとAttributeSetを取得
+		if (!AbilitySystemComponent)
+		{
+			AbilitySystemComponent = MyPlayerState->GetAbilitySystemComponent();
+		}
+		if (!AttributeSet)
+		{
+			AttributeSet = MyPlayerState->GetAttributeSet();
+		}
+	}
+	check(AbilitySystemComponent);
+	check(AttributeSet);
 
-// Called to bind functionality to input
-void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	// ASCのOwnerとAvatarを設定
+	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, InAvatarActor);
 
+	// キャラクターに初期付与するアビリティとエフェクトを設定
+	SetupDefaultAbilitiesAndEffects();
+
+	// デフォルトエフェクトを適用
+	InitializeDefaultEffects();
+
+	// デフォルトアビリティを付与
+	InitializeDefaultAbilities();
+
+	// ASC登録時のデリゲートをブロードキャスト
+	OnAscRegistered.Broadcast(AbilitySystemComponent, AttributeSet);
 }
 
 ```
 </div>
 <br>
 
-### プレイヤーキャラクターの作成
-#### アビリティシステムの初期化  
-アビリティシステムの初期化関数であるInitAbilityActorInfoを呼ぶためにはオーナーアクターとワールドに設置される物理的なアクターの２つが必要です。  
-物理的なアクターはプレイヤーキャラクターなのですが、オーナーアクターはプレイヤーステートになるため、この２つが揃うのはPossessedByが呼ばれた時点となります。
-### エネミーキャラクターの作成
+# プレイヤーキャラクターの作成
 
-## アビリティーアクター情報の初期化
+## アビリティシステムの初期化  
+プレイヤーキャラクターの場合、アビリティシステムコンポーネントとアトリビュートセットのオーナーはプレイヤーステートなので、この２つが揃うのはサーバーではPossessedBy、クライアントではOnRep_PlayerStateが呼ばれた時点となります。そのタイミングでアビリティーシステム初期化関数であるInitializeAbilitySystemを呼びます。  
+またプレイヤーキャラクターにはカメラが必要なのでスプリングアームとカメラのコンポーネントを追加しておきます。
+## ソースコード
 
-## レプリケーションモード
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerCharacter.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
 
-キャラクターにはStrength,Intelligence,Health,Manaといったパラメータが存在します。  
-ゲームプレイアビリティではこれらをアトリビュートというfloat値で表し、それを1セットにまとめたものをアトリビュートセットという形でキャラクターに持たせます。
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
 
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Characters/Base/MyCharacter.h"
+#include "MyPlayerCharacter.generated.h"
+
+// 前方宣言
+class UCameraComponent;
+class USpringArmComponent;
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API AMyPlayerCharacter : public AMyCharacter
+{
+	GENERATED_BODY()
+	
+public:
+	AMyPlayerCharacter();
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+private:
+	// カメラコンポーネント
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UCameraComponent> CameraComponent;
+
+	// スプリングアームコンポーネント
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USpringArmComponent> CameraBoom;
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerCharacter.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Characters/Player/MyPlayerCharacter.h"
+#include "GameFramework/PlayerState.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
+
+AMyPlayerCharacter::AMyPlayerCharacter()
+{
+	// スプリングアームコンポーネントの作成
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("CameraBoom");
+	CameraBoom->SetupAttachment(GetRootComponent());
+	CameraBoom->SetUsingAbsoluteRotation(true);
+	CameraBoom->bDoCollisionTest = false;
+
+	// カメラコンポーネントの作成
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
+	CameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	CameraComponent->bUsePawnControlRotation = false;
+
+	// キャラクター移動設定
+	GetCharacterMovement()->bOrientRotationToMovement = true;			/* 移動方向を向く */
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);	/* ローテーションレート指定 */
+	GetCharacterMovement()->bConstrainToPlane = true;					/* 常に地面に沿って移動する */
+	GetCharacterMovement()->bSnapToPlaneAtStart = true;					/* 開始時に地面に接地設定 */
+
+	/* コントローラーの回転角を使わない */
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+}
+
+void AMyPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// サーバーではPossessedByが呼ばれたタイミングでPlayerStateが設定される
+	// ASCの初期化を行う
+	InitializeAbilitySystem(GetPlayerState(), this);
+}
+
+void AMyPlayerCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// クライアントではOnRep_PlayerStateが呼ばれたタイミングでPlayerStateが設定される
+	// ASCの初期化を行う
+	InitializeAbilitySystem(GetPlayerState(), this);
+}
+
+// Called to bind functionality to input
+void AMyPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+```
+</div>
+<br>
+
+# エネミーキャラクターの作成
+エネミーキャラクターの場合、アビリティシステムコンポーネントとアトリビュートセットはコンストラクタ内で自分自身で生成・保持します。アビリティーシステム初期化関数のInitializeAbilitySystemはBeginPlayで呼びます。  
+PossessedByはAIControllerに所有されたときのBehaviorTreeの初期化をコメントアウトで残してあります。
+## ソースコード
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyEnemyCharacter.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Characters/Base/MyCharacter.h"
+#include "MyEnemyCharacter.generated.h"
+
+// 前方宣言
+#if 0
+class UBehaviorTree;
+class AMyAIController;
+#endif
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API AMyEnemyCharacter : public AMyCharacter
+{
+	GENERATED_BODY()
+
+public:
+	// コンストラクタでデフォルト値を設定
+	AMyEnemyCharacter();
+
+	// コントローラーがこのキャラクターを所持したときに呼ばれる関数
+	virtual void PossessedBy(AController* NewController) override;
+
+	// ゲーム開始時またはスポーン時に呼ばれる関数
+	virtual void BeginPlay() override;
+
+#if 0
+protected:
+	// 敵の挙動が記述されているBehaviorTree
+	UPROPERTY(EditAnywhere, Category = "AI")
+	TObjectPtr<UBehaviorTree> BehaviorTree;
+
+	// このエネミーを所持しているAIコントローラー
+	UPROPERTY()
+	TObjectPtr<AMyAIController> MyAIController;
+#endif
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyEnemyCharacter.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "MyEnemyCharacter.h"
+#include "AbilitySystem/MyAbilitySystemComponent.h"
+#include "AbilitySystem/MyAttributeSet.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#if 0
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#endif
+
+AMyEnemyCharacter::AMyEnemyCharacter()
+{
+	// AbilitySystemComponentとAttributeSetを作成
+	AbilitySystemComponent = CreateDefaultSubobject<UMyAbilitySystemComponent>("AbilitySystemComponent");
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+	AttributeSet = CreateDefaultSubobject<UMyAttributeSet>("AttributeSet");
+
+	// コントローラーの回転をキャラクターにそのままコピーしないように設定
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+
+	// コントローラーの向きに合わせてキャラクターがRotation Speedで滑らかに回転するように設定
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+
+
+}
+
+void AMyEnemyCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// 敵AIはサーバーでのみ実行、クライアントはレプリケートされるだけ
+	if (!HasAuthority()) return;
+#if 0
+	// コントローラーに所持されたときにBlakboardを初期化しBehaviorTreeを実行
+	MyAIController = Cast<AMyController>(NewController);
+	MyController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
+	MyController->RunBehaviorTree(BehaviorTree);
+	// Blackboardの各キーを初期化
+	// MyController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), false);
+#endif
+}
+
+void AMyEnemyCharacter::BeginPlay()
+{
+	// Enemyは自身がASCのOwnerでありAvatarでもあるので、BeginPlayでASCを初期化
+	InitializeAbilitySystem(this, this);
+}
+```
+</div>
+<br>
+
+# プレイヤーコントローラーの作成
+プレイヤーコントローラーは特別なことはしません。プレイヤーコントローラクラスを派生させてプロジェクト用のプレイヤーコントローラーを作成します。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerController.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/PlayerController.h"
+#include "MyPlayerController.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API AMyPlayerController : public APlayerController
+{
+	GENERATED_BODY()
+	
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerController.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Controller/Player/MyPlayerController.h"
+
+```
+</div>
+<br>
+
+## ゲームモードの作成
+ゲームモードはコンストラクタでデフォルトのプレイヤーコントローラークラス、プレイヤーステートクラス、ポーンクラスに作成したものを設定します。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyGameMode.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/GameModeBase.h"
+#include "MyGameMode.generated.h"
+
+/**
+ * ゲームモード：PlayerController, PlayerState, DefaultPawn を設定
+ */
+UCLASS()
+class ETA_API AMyGameMode : public AGameModeBase
+{
+	GENERATED_BODY()
+
+public:
+	AMyGameMode();
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyGameMode.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#include "GameModes/MyGameMode.h"
+#include "Controller/Player/MyPlayerController.h"
+#include "Controller/Player/MyPlayerState.h"
+#include "Characters/Player/MyPlayerCharacter.h"
+
+AMyGameMode::AMyGameMode()
+{
+	// プレイヤーコントローラ、プレイヤーステート、デフォルトポーンを設定
+	PlayerControllerClass = AMyPlayerController::StaticClass();
+	PlayerStateClass      = AMyPlayerState::StaticClass();
+	DefaultPawnClass      = AMyPlayerCharacter::StaticClass();
+}
+```
+</div>
+<br>
+
+# ゲームインスタンスの作成
+ゲームインスタンスは特別なことはしません。GameInstanceクラスを派生させてプロジェクト用のゲームインスタンスを作成します。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyGameInstance.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/GameInstance.h"
+#include "MyGameInstance.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API UMyGameInstance : public UGameInstance
+{
+	GENERATED_BODY()
+	
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyGameInstance.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "GameInstance/MyGameInstance.h"
+
+```
+</div>
+<br>
+
+
+# 起動確認
+## プロジェクト設定
+プロジェクト設定でデフォルトのゲームインスタンスとゲームモードを作成したものにしてプレイ開始します。
+## デバッグ表示
+コンソールコマンドで
+```sh
+showdebug abilitysystem
+```
+を使うとアビリティシステムをセットアップしたキャラクターのアトリビュート情報が確認できます。
+
+# ゲームプレイエフェクト
+ゲームプレイエフェクトはアビリティシステムコンポーネントが持つアトリビュートやゲームプレイタグに対して「何のアトリビュートをどう変化させるか」という設定のリストが書かれたデータクラスです。  
+これを対象のアビリティシステムコンポーネントに適応することによりキャラの基本パラメータの設定や、ダメージによるヒットポイントの減産処理を行います。
+
+## ゲームプレイエフェクトの特徴
+ゲームプレイエフェクトには以下のような特徴があります。
+### データのみ
+コードは含まないデータ構造体です。
+### Blueprintベースで作成する
+サブクラス化せずゲームプレイエフェクトをそのまま使用します。  
+Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
+### モディファイアとエグゼキューションによるアトリビュートを変更
+ゲームプレイエフェクトはモディファイアとエグゼキューションという２つの機能によりアトリビュートを変化させます。
+- モディファイア  
+アトリビュートに対してマグニチュードという値を使って操作タイプごとに指定された計算を行いアトリビュートの値の変更を行う  
+ゲームプレイに特化した複雑なカスタム計算を使ってアトリビュートを変更することも可能
+  - マグニチュード  
+    アトリビュート計算に使われる値  
+    以下の計算タイプが存在する
+    - ScalableFloat  
+      ScalableFloatはシンプルな計算方法  
+      以下のものから選択します。
+      - HarcoreValue  
+        指定されたマグニチュードをそのまま計算に使う
+      - Table  
+        ゲームプレイエフェクトのレベルに基づいて大きさを調整するテーブルを使用する
+    - AttributeBased  
+      他のアトリビュートの値をベースに計算する  
+      例えば、プレイヤーの最大HPはStrengthと同じとしたり、その10倍の値とするなど
+    - MMC(CustomCalculationClass)  
+      他の様々なアトリビュートや外部の値を使って複雑な計算を行ってマグニチュードを計算する方法  
+      それ専用のクラスを作成して指定する
+    - Set by Caller  
+      エフェクトを適用しようとしている呼び出し元で設定したマグニチュードを使用する  
+      キーと値のペアになっていて、名前またはゲームプレイタグに関連付けられたマグニチュードを割り当てる  
+      コードロジックに基づいてモディファイアのマグニチュードを設定しておく必要がある場合に便利
+  - 操作タイプ  
+    操作タイプには以下のようなものが用意されている
+    - Add  
+    足し算。シンプルに与えられたマグニチュードの値をアトリビュートの値に足す  
+    マグニチュードがマイナスであれば引き算になる
+    - Multiply  
+    掛け算  
+    アトリビュートに対してマグニチュードの値と掛け算をう
+    - Divide  
+    割り算  
+    アトリビュートに対してマグニチュードの値と割り算を行う
+    - Override  
+    上書き  
+    単純に現在のアトリビュートをマグニチュードの値で上書き
+- エグゼキューション(GameplayEffect Execution Calculation)  
+  アトリビュートを変更するための最も強力な方法  
+  コーディングで様々なアトリビュートや値から動的にあらゆるゲームプレイエフェクトを生成可能で、複数のアトリビュートを同時に変更することができる
+### 期間ポリシー
+ゲームプレイエフェクトは、その有効期間を設定する期間ポリシー(Duration Policy)が存在します。
+- Instant  
+  1回限りのアクションで即座に適用されるインスタントエフェクト
+- Has Duration  
+  ゲームプレイエフェクトが有効になる期間を指定できる  
+  一定期間Attributeを変更し、期間が終了したら元の値に戻る
+- Inifinit  
+  ゲームプレイエフェクトtの効果を永続的に適用したままにする  
+  後で手動でエフェクトを削除することもできる  
+  期間適用する必要があるかわからない場合やゲームプレイに応じて削除する必要がある場合に役立つ
+### スタッキング
+ゲームプレイフェクトはスタック可能で、どのようなルールでスタックさせるかの独自のポリシーを設定できます。
+### ゲームプレイタグの追加
+ゲームプレイエフェクトが有効な間、対象のアビリティシステムコンポーネントにゲームプレイタグを追加することができます。
+### アビリティの付与
+ゲームプレイエフェクトが有効な間、指定したアビリティを付与することもできます。
+
+## ゲームプレイエフェクトスペック
+***ここから
+
+## ゲームプレイエフェクトのユースケース
