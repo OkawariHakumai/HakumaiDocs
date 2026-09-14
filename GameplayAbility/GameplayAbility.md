@@ -69,19 +69,22 @@
 	- [ゲームプレイエフェクトの適用](#ゲームプレイエフェクトの適用)
 		- [ゲームプレイエフェクトスペック](#ゲームプレイエフェクトスペック)
 		- [ゲームプレイエフェクトのワークフロー](#ゲームプレイエフェクトのワークフロー)
-	- [プライマリアトリビュートエフェクト](#プライマリアトリビュートエフェクト)
-	- [セカンダリアトリビュートエフェクト](#セカンダリアトリビュートエフェクト)
-	- [即時型エフェクト](#即時型エフェクト)
-	- [期間型エフェクト](#期間型エフェクト)
-	- [周期的エフェクト](#周期的エフェクト)
-	- [期間型エフェクト](#期間型エフェクト-1)
-	- [エフェクトのスタック](#エフェクトのスタック)
-	- [アトリビュート変更の事前処理](#アトリビュート変更の事前処理)
-	- [アトリビュート変更の事後処理](#アトリビュート変更の事後処理)
-	- [モディファイアの計算順序](#モディファイアの計算順序)
-	- [モディファイアの係数](#モディファイアの係数)
-	- [MMC(Modiier Magnitude Calculations)の実装](#mmcmodiier-magnitude-calculationsの実装)
-	- [ExecutionCalculationの実装](#executioncalculationの実装)
+	- [モディファイアによるアトリビュート変更](#モディファイアによるアトリビュート変更)
+		- [直値による変更](#直値による変更)
+		- [直値とカーブテーブルによる変更](#直値とカーブテーブルによる変更)
+		- [アトリビュート計算による変更](#アトリビュート計算による変更)
+		- [呼び出し元の設定値に変更](#呼び出し元の設定値に変更)
+		- [MMC(Modiier Magnitude Calculations)による変更](#mmcmodiier-magnitude-calculationsによる変更)
+		- [ExecutionCalculationによる変更](#executioncalculationによる変更)
+		- [アトリビュート変更の事前処理](#アトリビュート変更の事前処理)
+		- [アトリビュート変更の事後処理](#アトリビュート変更の事後処理)
+		- [モディファイアの計算順序](#モディファイアの計算順序)
+		- [モディファイアの係数](#モディファイアの係数)
+	- [エフェクトの存続期間](#エフェクトの存続期間)
+		- [即時型](#即時型)
+		- [期間型](#期間型)
+		- [周期型](#周期型)
+	- [エフェクトのスタックルール](#エフェクトのスタックルール)
 
 # アビリティシステムの概要
 アビリティシステムは以下のパーツから構成されています。  
@@ -2055,32 +2058,127 @@ Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
 	```
 といった流れになります。
 
-## プライマリアトリビュートエフェクト
+## モディファイアによるアトリビュート変更
+モディファイアはアトリビュートをどのように変化させるかを定義したものです。  
+値を直接指定するもの、アトリビュート同士の演算を使うもの、呼び出し元で設定するもの、複雑な計算を行うものなど様々な種類があります。
 
-## セカンダリアトリビュートエフェクト
+### 直値による変更
+プライマリアトリビュートの初期値設定などに適している最もシンプルなものです。
+モディファイアに、アトリビュート、演算方法、値を指定して、エフェクトのモディファイア配列に追加します。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  PlayerPrimaryAttributesEffect.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
 
-## 即時型エフェクト
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
 
-## 期間型エフェクト
-HPバフ
+#pragma once
 
-## 周期的エフェクト
-DoT
+#include "CoreMinimal.h"
+#include "GameplayEffect.h"
+#include "GameplayEffectTypes.h"
+#include "PlayerPrimaryAttributesEffect.generated.h"
 
-## 期間型エフェクト
+UCLASS()
+class ETA_API UPlayerPrimaryAttributesEffect : public UGameplayEffect
+{
+	GENERATED_BODY()
 
-## エフェクトのスタック
+public:
+	UPlayerPrimaryAttributesEffect();
 
-## アトリビュート変更の事前処理
+	void AddOverrideModifier(FGameplayAttribute Attribute, TEnumAsByte<EGameplayModOp::Type> ModifierOp, float Magnitude);
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  PlayerPrimaryAttributesEffect.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#include "PlayerPrimaryAttributesEffect.h"
+#include "Characters/Base/AbilitySystem/MyAttributeSet.h"
+#include "GameplayEffectTypes.h"
+
+UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
+{
+	// オーバーライドモディファイアでプライマリーアトリビュートの初期値を設定する
+	AddOverrideModifier(UMyAttributeSet::GetStrengthAttribute(), EGameplayModOp::Override, 10.0f);
+	AddOverrideModifier(UMyAttributeSet::GetIntelligenceAttribute(), EGameplayModOp::Override, 17.0f);
+	AddOverrideModifier(UMyAttributeSet::GetResilienceAttribute(), EGameplayModOp::Override, 12.0f);
+	AddOverrideModifier(UMyAttributeSet::GetVigorAttribute(), EGameplayModOp::Override, 9.0f);
+}
+
+void UPlayerPrimaryAttributesEffect::AddOverrideModifier(FGameplayAttribute Attribute, TEnumAsByte<EGameplayModOp::Type> ModifierOp, float Magnitude)
+{
+	FGameplayModifierInfo NewMod;
+	NewMod.Attribute = Attribute;
+	NewMod.ModifierOp = ModifierOp;
+	NewMod.ModifierMagnitude = FScalableFloat(Magnitude);
+	Modifiers.Add(NewMod);
+}
+```
+</div>
+<br>
+実際に使用する際は、AMyCharacter::ApplyEffectToSelfで直接エフェクトを適用するか、AMyCharacter::SetupDefaultAbilitiesAndEffectsでデフォルトで適用するアトリビュートに追加しておき、初期化時に適用してもらいます。
+<br>
+<br>
+
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerCharacter.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
+{
+	Super::SetupDefaultAbilitiesAndEffects();
+
+	// PlayerPrimaryAttributesEffect をデフォルトエフェクトに追加
+	DefaultEffects.AddUnique(UPlayerPrimaryAttributesEffect::StaticClass());
+}
+```
+</div>
+<br>
+
+### 直値とカーブテーブルによる変更
+直値を横軸としてカーブテーブルから値を引いたものを適用します。  
+例えば、RPGなどでレベルごとに最大HPが上がっていく場合、レベルと最大HPの変化をカーブテーブルで表現しておけば、直値にレベルを指定することにより、そのレベルでの最大HPをアトリビュートに設定することができます。
+
+### アトリビュート計算による変更
+セカンダリアトリビュート
+
+### 呼び出し元の設定値に変更
+プライマリアトリビュートの亜種
+
+### MMC(Modiier Magnitude Calculations)による変更
+
+### ExecutionCalculationによる変更
+
+### アトリビュート変更の事前処理
 PreAttributeChange
 
-## アトリビュート変更の事後処理
+### アトリビュート変更の事後処理
 PostAttributeChange
 
-## モディファイアの計算順序
+### モディファイアの計算順序
 
-## モディファイアの係数
+### モディファイアの係数
 
-## MMC(Modiier Magnitude Calculations)の実装
 
-## ExecutionCalculationの実装
+## エフェクトの存続期間
+
+### 即時型
+
+### 期間型
+HPバフ
+
+### 周期型
+DoT
+
+## エフェクトのスタックルール
