@@ -70,8 +70,8 @@
 		- [ゲームプレイエフェクトスペック](#ゲームプレイエフェクトスペック)
 		- [ゲームプレイエフェクトのワークフロー](#ゲームプレイエフェクトのワークフロー)
 	- [モディファイアによるアトリビュート変更](#モディファイアによるアトリビュート変更)
-		- [直値による変更](#直値による変更)
-		- [直値とカーブテーブルによる変更](#直値とカーブテーブルによる変更)
+		- [スケーラブルフロートによる変更](#スケーラブルフロートによる変更)
+		- [スケーラブルフロートとカーブテーブルによる変更](#スケーラブルフロートとカーブテーブルによる変更)
 		- [アトリビュート計算による変更](#アトリビュート計算による変更)
 		- [呼び出し元の設定値に変更](#呼び出し元の設定値に変更)
 		- [MMC(Modiier Magnitude Calculations)による変更](#mmcmodiier-magnitude-calculationsによる変更)
@@ -2062,37 +2062,9 @@ Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
 モディファイアはアトリビュートをどのように変化させるかを定義したものです。  
 値を直接指定するもの、アトリビュート同士の演算を使うもの、呼び出し元で設定するもの、複雑な計算を行うものなど様々な種類があります。
 
-### 直値による変更
+### スケーラブルフロートによる変更
 プライマリアトリビュートの初期値設定などに適している最もシンプルなものです。
 モディファイアに、アトリビュート、演算方法、値を指定して、エフェクトのモディファイア配列に追加します。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  PlayerPrimaryAttributesEffect.h
-</div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
-
-```cpp
-// Copyright MyGameCompany. All Rights Reserved.
-
-#pragma once
-
-#include "CoreMinimal.h"
-#include "GameplayEffect.h"
-#include "GameplayEffectTypes.h"
-#include "PlayerPrimaryAttributesEffect.generated.h"
-
-UCLASS()
-class ETA_API UPlayerPrimaryAttributesEffect : public UGameplayEffect
-{
-	GENERATED_BODY()
-
-public:
-	UPlayerPrimaryAttributesEffect();
-
-	void AddOverrideModifier(FGameplayAttribute Attribute, TEnumAsByte<EGameplayModOp::Type> ModifierOp, float Magnitude);
-};
-```
-</div>
-<br>
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
   PlayerPrimaryAttributesEffect.cpp
 </div>
@@ -2108,18 +2080,10 @@ public:
 UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
 {
 	// オーバーライドモディファイアでプライマリーアトリビュートの初期値を設定する
-	AddOverrideModifier(UMyAttributeSet::GetStrengthAttribute(), EGameplayModOp::Override, 10.0f);
-	AddOverrideModifier(UMyAttributeSet::GetIntelligenceAttribute(), EGameplayModOp::Override, 17.0f);
-	AddOverrideModifier(UMyAttributeSet::GetResilienceAttribute(), EGameplayModOp::Override, 12.0f);
-	AddOverrideModifier(UMyAttributeSet::GetVigorAttribute(), EGameplayModOp::Override, 9.0f);
-}
-
-void UPlayerPrimaryAttributesEffect::AddOverrideModifier(FGameplayAttribute Attribute, TEnumAsByte<EGameplayModOp::Type> ModifierOp, float Magnitude)
-{
 	FGameplayModifierInfo NewMod;
-	NewMod.Attribute = Attribute;
-	NewMod.ModifierOp = ModifierOp;
-	NewMod.ModifierMagnitude = FScalableFloat(Magnitude);
+	NewMod.Attribute = UMyAttributeSet::GetStrengthAttribute();
+	NewMod.ModifierOp = EGameplayModOp::Override;
+	NewMod.ModifierMagnitude = FScalableFloat(10.f);
 	Modifiers.Add(NewMod);
 }
 ```
@@ -2146,9 +2110,47 @@ void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 </div>
 <br>
 
-### 直値とカーブテーブルによる変更
-直値を横軸としてカーブテーブルから値を引いたものを適用します。  
-例えば、RPGなどでレベルごとに最大HPが上がっていく場合、レベルと最大HPの変化をカーブテーブルで表現しておけば、直値にレベルを指定することにより、そのレベルでの最大HPをアトリビュートに設定することができます。
+### スケーラブルフロートとカーブテーブルによる変更
+設定した値を時間としてカーブテーブルから値を引いたものを適用するケースです。  
+RPGなどでレベルごとに最大HPが上がっていく場合、レベルと最大HPの変化をカーブテーブルで表現しておけば、直値にレベルを指定することにより、そのレベルでの最大HPをアトリビュートに設定することができます。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerCharacter.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
+{
+	/*
+	 *	CSV文字列からカーブデータを構築する
+	 */
+	UCurveTable* StrengthCurveTable = NewObject<UCurveTable>();
+	// CSV形式のデータ（例: 行名, タイム=値, タイム=値...）
+	FString CsvString = TEXT("StrengthCurve, 0.0=0.0, 1.0=100.0, 2.0=200.0, 3.0=35.0");
+	// 補間タイプを指定してテーブルデータを生成
+	StrengthCurveTable->CreateTableFromCSVString(CsvString, ERichCurveInterpMode::RCIM_Cubic);
+
+	/* アセットらカーブデータを構築する場合
+	static const FString CurveTablePath = TEXT("CurveTable'/Game/Data/MyCurveTable.MyCurveTable'");
+	ConstructorHelpers::FObjectFinder<UCurveTable> CurveTableFinder(*CurveTablePath);
+	UCurveTable* StrengthCurveTable = CurveTableFinder.Object;
+	*/
+
+	// ScalableFloatにカーブテーブルを設定する
+	FGameplayModifierInfo NewMod;
+	NewMod.Attribute = UMyAttributeSet::GetStrengthAttribute();
+	NewMod.ModifierOp = EGameplayModOp::Override;
+	FScalableFloat Scalable;
+	Scalable.Value = 1.0f;	// カーブの横軸の値を指定
+	Scalable.Curve.RowName = FName(TEXT("StrengthCurve"));
+	Scalable.Curve.CurveTable = StrengthCurveTable;
+	NewMod.ModifierMagnitude = Scalable;
+	Modifiers.Add(NewMod);
+}
+```
+</div>
+<br>
+
 
 ### アトリビュート計算による変更
 セカンダリアトリビュート
