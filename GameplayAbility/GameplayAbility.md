@@ -72,7 +72,11 @@
 	- [モディファイアによるアトリビュート変更](#モディファイアによるアトリビュート変更)
 		- [スケーラブルフロートによる変更](#スケーラブルフロートによる変更)
 		- [スケーラブルフロートとカーブテーブルによる変更](#スケーラブルフロートとカーブテーブルによる変更)
-		- [アトリビュート計算による変更](#アトリビュート計算による変更)
+		- [アトリビュートによる変更](#アトリビュートによる変更)
+			- [計算の順序](#計算の順序)
+			- [アトリビュート取得方法](#アトリビュート取得方法)
+			- [使用するアトリビュートの値](#使用するアトリビュートの値)
+			- [アトリビュートの有効期間](#アトリビュートの有効期間)
 		- [呼び出し元の設定値に変更](#呼び出し元の設定値に変更)
 		- [MMC(Modiier Magnitude Calculations)による変更](#mmcmodiier-magnitude-calculationsによる変更)
 		- [ExecutionCalculationによる変更](#executioncalculationによる変更)
@@ -1984,7 +1988,8 @@ Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
         ゲームプレイエフェクトのレベルに基づいて大きさを調整するテーブルを使用する
     - AttributeBased  
       他のアトリビュートの値をベースに計算する  
-      プレイヤーの最大HPをStrengthと同じとしたり、その10倍の値とするなど
+      プレイヤーの最大HPをStrengthと同じとしたり、その10倍の値とするなど  
+	  単一のアトリビュート値をもとにした計算しかできないので、複数の値で計算する場合はMMCを使う
     - MMC(CustomCalculationClass)  
       様々なアトリビュートや外部の値を使って複雑な計算を行いマグニチュードを計算する方法  
       計算を実行する関数を持つクラスを作成して指定
@@ -2114,7 +2119,7 @@ void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 設定した値を時間としてカーブテーブルから値を引いたものを適用するケースです。  
 RPGなどでレベルごとに最大HPが上がっていく場合、レベルと最大HPの変化をカーブテーブルで表現しておけば、直値にレベルを指定することにより、そのレベルでの最大HPをアトリビュートに設定することができます。
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
-  MyPlayerCharacter.cpp
+  PlayerPrimaryAttributesEffect.cpp
 </div>
 <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
 
@@ -2152,8 +2157,102 @@ UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
 <br>
 
 
-### アトリビュート計算による変更
-セカンダリアトリビュート
+### アトリビュートによる変更
+他のアトリビュートを使って計算を行い対象となるアトリビュート値を決定する方法です。  
+単一の値から計算することしかできない点に注意が必要です。  
+一つのプライマリアトリビュートをベースにして計算されるセカンダリアトリビュートなどで使われます。
+#### 計算の順序
+演算は「事前加算 → 係数乗算 → 事後加算」の順に行われます。  
+例えば  
+```
+Armor = (Resilience + 2) * 0.25 + 6
+```
+という計算であれば、モディファイアの計算タイプにAttributeBasedに指定して、
+- PreAdd = 2
+- Coefficient = 0.25
+- PostAdd = 6。
+というモディファイアを設定します。
+
+#### アトリビュート取得方法
+また、計算元となるアトリビュートをどのように取得するかの設定をFGameplayEffectAttributeCaptureDefinitionという構造体で指定します。
+
+- どのアトリビュート値を使うか  
+  アトリビュートのクラスを指定
+- アトリビュートを取得する対象  
+  アトリビュートを与える側か、与えられる側かを選びます。  
+  セカンダリアトリビュートはどちらも同じアクターですが、意味合い的に「対象の」という部分が強いのでTargetを指定します。
+- スナップショットを取るか  
+  通常はfalseで大丈夫です。  
+  キャラクターが弾を発射する場合、敵に与えるダメージエフェクトを弾に持たせることになりますが、着弾時に発射元のキャラクターが死亡などの理由で存在し続けているとは限りません。発射元キャラクターがいない状態でダメージ計算時を行うと計算に必要なアトリビュートが取れなくなるので、そういった場合にスナップショットをtrueにして、エフェクト生成時のアトリビュート値を保存しておきます。
+
+#### 使用するアトリビュートの値
+計算元となるアトリビュートの度の値を使うかも設定できます。
+通常はマグニチュード値を使いますが、エフェクトがかかる前のベース値やエフェクトによるボーナス値(マグニチュード値 - ベース値)を使うこともできます。
+
+#### アトリビュートの有効期間
+セカンダリーアトリビュートは永続的にプライマリーアトリビュートから計算されるのでDurationPolicyはInfiniteにします。
+
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MySecondaryAttributesEffect.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+UMySecondaryGameplayEffect::UMySecondaryGameplayEffect()
+{
+	FGameplayModifierInfo Mod;
+	Mod.Attribute = UMyAttributeSet::GetArmorAttribute();
+	Mod.ModifierOp = EGameplayModOp::Override;
+
+	// AttributeBased の設定
+	FAttributeBasedFloat AttrBased;
+	AttrBased.BackingAttribute = FGameplayEffectAttributeCaptureDefinition(
+		UMyAttributeSet::GetResilienceAttribute(),
+		EGameplayEffectAttributeCaptureSource::Target,
+		false /* bSnapshot */);
+	// ↑今回の計算はスナップショットを取らない(Resilienceの値が変化したらArmorの値も変化する)
+	// 　弾などに設定するエフェクトは発射キャラクターのアトリビュートを発射時にキャプチャしておく必要があるのでtrueにする
+
+	// Armor = (Resilience * 0.25 + 2) + 6
+	AttrBased.Coefficient = 0.25f;
+	AttrBased.PreMultiplyAdditiveValue = 2.0f;
+	AttrBased.PostMultiplyAdditiveValue = 6.0f;
+
+	// 計算元のアトリビュート値はマグニチュードを使う(他にベース値やボーナス値(マグニチュード-ベース値)を使う指定もある)
+	AttrBased.AttributeCalculationType = EAttributeBasedFloatCalculationType::AttributeMagnitude;
+
+	Mod.ModifierMagnitude = FGameplayEffectModifierMagnitude(AttrBased);
+	Modifiers.Add(Mod);
+
+	// セカンダリーアトリビュートは永続的にプライマリーアトリビュートから計算されるので
+	// DurationPolicyはInfiniteにする
+	DurationPolicy = EGameplayEffectDurationType::Infinite;
+}
+```
+</div>
+<br>
+<br>
+
+プライマリアトリビュートと同様に、実際に使用する際は、AMyCharacter::ApplyEffectToSelfで直接エフェクトを適用するか、AMyCharacter::SetupDefaultAbilitiesAndEffectsでデフォルトで適用するアトリビュートに追加しておき、初期化時に適用してもらいます。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyPlayerCharacter.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
+{
+	Super::SetupDefaultAbilitiesAndEffects();
+
+	// MyPlayerPrimaryAttributesEffect をデフォルトエフェクトに追加
+	DefaultEffects.AddUnique(UMyPlayerPrimaryAttributesEffect::StaticClass());
+	// MySecondaryGameplayEffect をデフォルトエフェクトに追加
+	DefaultEffects.AddUnique(UMySecondaryGameplayEffect::StaticClass());
+}
+```
+</div>
+<br>
+
 
 ### 呼び出し元の設定値に変更
 プライマリアトリビュートの亜種
