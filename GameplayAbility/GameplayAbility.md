@@ -4,13 +4,13 @@
 - [ゲームプレイアビリティシステム](#ゲームプレイアビリティシステム)
 - [目次](#目次)
 - [アビリティシステムの概要](#アビリティシステムの概要)
+	- [ゲームプレイタグ](#ゲームプレイタグ)
 	- [アビリティシステムコンポーネント](#アビリティシステムコンポーネント)
 	- [アトリビュートセット](#アトリビュートセット)
 	- [ゲームプレイアビリティ](#ゲームプレイアビリティ)
 	- [アビリティタスク](#アビリティタスク)
 	- [ゲームプレイエフェクト](#ゲームプレイエフェクト)
 	- [ゲームプレイキュー](#ゲームプレイキュー)
-	- [ゲームプレイタグ](#ゲームプレイタグ)
 - [アビリティシステムの環境構築](#アビリティシステムの環境構築)
 	- [プラグインの有効化](#プラグインの有効化)
 	- [Gameplay Abilitiesプラグインを有効化](#gameplay-abilitiesプラグインを有効化)
@@ -18,39 +18,43 @@
 - [アビリティシステムのクラス構成](#アビリティシステムのクラス構成)
 	- [プレイヤー](#プレイヤー)
 	- [エネミー](#エネミー)
-- [アビリティの作成](#アビリティの作成)
-	- [ダイナミックタグの設定](#ダイナミックタグの設定)
+- [ゲームプレイタグ(ダイナミックタグ)の作成](#ゲームプレイタグダイナミックタグの作成)
 	- [ソースコード](#ソースコード)
+- [アビリティの作成](#アビリティの作成)
+	- [ソースコード](#ソースコード-1)
 - [アトリビュートセットの作成](#アトリビュートセットの作成)
+	- [アトリビュートセットの実装](#アトリビュートセットの実装)
+	- [アトリビュートセットのソースコード](#アトリビュートセットのソースコード)
+	- [アトリビュートセットの初期化](#アトリビュートセットの初期化)
 - [アビリティシステムコンポーネントの作成](#アビリティシステムコンポーネントの作成)
 	- [アビリティシステムのレプリケーション](#アビリティシステムのレプリケーション)
-	- [アビリティの付与](#アビリティの付与)
-		- [アビリティ](#アビリティ)
-		- [パッシブアビリティ](#パッシブアビリティ)
-		- [アビリティスペック](#アビリティスペック)
+	- [アビリティの付与機能](#アビリティの付与機能)
+		- [通常アビリティとは](#通常アビリティとは)
+		- [パッシブアビリティとは](#パッシブアビリティとは)
+		- [アビリティスペックとは](#アビリティスペックとは)
 	- [アビリティごとの処理](#アビリティごとの処理)
 	- [アセットタグからアビリティスペックを取得](#アセットタグからアビリティスペックを取得)
 	- [アビリティスペックからアセットタグを取得](#アビリティスペックからアセットタグを取得)
 	- [汎用イベントをアビリティへ通知](#汎用イベントをアビリティへ通知)
 	- [アビリティのアクティベート](#アビリティのアクティベート)
 	- [アビリティのレベル設定](#アビリティのレベル設定)
-	- [ソースコード](#ソースコード-1)
+	- [ソースコード](#ソースコード-2)
 - [プレイヤーステートの作成](#プレイヤーステートの作成)
 	- [コンストラクタ](#コンストラクタ)
 	- [レプリケーションの設定](#レプリケーションの設定)
 	- [アビリティシステムコンポーネントの取得関数](#アビリティシステムコンポーネントの取得関数)
-	- [ソースコード](#ソースコード-2)
+	- [ソースコード](#ソースコード-3)
 - [キャラクターのベース作成](#キャラクターのベース作成)
 	- [アビリティシステムコンポーネントとアトリビュートセット](#アビリティシステムコンポーネントとアトリビュートセット)
 	- [初期付与するアビリティとエフェクト](#初期付与するアビリティとエフェクト)
 	- [エフェクトの適用関数](#エフェクトの適用関数)
 	- [アビリティシステムの初期化](#アビリティシステムの初期化)
-	- [ソースコード](#ソースコード-3)
+	- [ソースコード](#ソースコード-4)
 - [プレイヤーキャラクターの作成](#プレイヤーキャラクターの作成)
 	- [アビリティシステムの初期化](#アビリティシステムの初期化-1)
-	- [ソースコード](#ソースコード-4)
-- [エネミーキャラクターの作成](#エネミーキャラクターの作成)
 	- [ソースコード](#ソースコード-5)
+- [エネミーキャラクターの作成](#エネミーキャラクターの作成)
+	- [ソースコード](#ソースコード-6)
 - [プレイヤーコントローラーの作成](#プレイヤーコントローラーの作成)
 	- [ゲームモードの作成](#ゲームモードの作成)
 - [ゲームインスタンスの作成](#ゲームインスタンスの作成)
@@ -63,9 +67,12 @@
 		- [Blueprintベースで作成する](#blueprintベースで作成する)
 		- [モディファイアとエグゼキューションによるアトリビュートを変更](#モディファイアとエグゼキューションによるアトリビュートを変更)
 		- [期間ポリシー](#期間ポリシー)
+			- [Instant](#instant)
+			- [Has Duration](#has-duration)
+			- [Inifinit](#inifinit)
 		- [スタッキング](#スタッキング)
 		- [ゲームプレイタグの追加](#ゲームプレイタグの追加)
-		- [アビリティの付与](#アビリティの付与-1)
+		- [アビリティの付与](#アビリティの付与)
 	- [ゲームプレイエフェクトの適用](#ゲームプレイエフェクトの適用)
 		- [ゲームプレイエフェクトスペック](#ゲームプレイエフェクトスペック)
 		- [ゲームプレイエフェクトのワークフロー](#ゲームプレイエフェクトのワークフロー)
@@ -77,22 +84,25 @@
 			- [アトリビュート取得方法](#アトリビュート取得方法)
 			- [使用するアトリビュートの値](#使用するアトリビュートの値)
 			- [アトリビュートの有効期間](#アトリビュートの有効期間)
-		- [呼び出し元の設定値に変更](#呼び出し元の設定値に変更)
+		- [呼び出し元の設定による変更](#呼び出し元の設定による変更)
 		- [MMC(Modiier Magnitude Calculations)による変更](#mmcmodiier-magnitude-calculationsによる変更)
 		- [ExecutionCalculationによる変更](#executioncalculationによる変更)
-		- [アトリビュート変更の事前処理](#アトリビュート変更の事前処理)
-		- [アトリビュート変更の事後処理](#アトリビュート変更の事後処理)
 		- [モディファイアの計算順序](#モディファイアの計算順序)
 		- [モディファイアの係数](#モディファイアの係数)
-	- [エフェクトの存続期間](#エフェクトの存続期間)
-		- [即時型](#即時型)
-		- [期間型](#期間型)
-		- [周期型](#周期型)
-	- [エフェクトのスタックルール](#エフェクトのスタックルール)
+	- [アトリビュート変更の事前処理](#アトリビュート変更の事前処理)
+	- [アトリビュート変更の事後処理](#アトリビュート変更の事後処理)
+	- [ゲームプレイエフェクトの適用と削除](#ゲームプレイエフェクトの適用と削除)
+	- [ゲームプレイエフェクトのスタッキング](#ゲームプレイエフェクトのスタッキング)
+	- [アトリビュート変更の検知](#アトリビュート変更の検知)
+	- [ゲームプレイエフェクト変更の検知](#ゲームプレイエフェクト変更の検知)
+	- [ゲームプレイエフェクトのコンポーネント](#ゲームプレイエフェクトのコンポーネント)
 
 # アビリティシステムの概要
 アビリティシステムは以下のパーツから構成されています。  
 これらが連携することによりアビリティシステムの機能を実現しています。
+## ゲームプレイタグ
+ゲームプレイアビリティシステム全般にわたって使用されるタグです。  
+アビリティシステムコンポーネント、ゲームプレイエフェクト、ゲームプレイアトリビュートなどに付与することができ、ゲームプレイアビリティの起動、キャラクターの状態管理、イベント発生時の通知パラメータなど幅広く利用されます。  
 ## アビリティシステムコンポーネント
 アビリティシステムの基本となるコンポーネントです。対象のアクターにアタッチしてアビリティシステム全般の制御を行います。
 ## アトリビュートセット
@@ -106,8 +116,6 @@
 アトリビュートの値を変更させるものです。アトリビュートの値は通常、直接書き換えるものではなく、アビリティシステムコンポーネントにゲームプレイエフェクトを適用することにより変化させます。例えば敵からダメージを受けてHPを減少させる場合、HPを減らすゲームプレイエフェクトを作成してアビリティシステムコンポーネントに適用させます。また、ゲームプレイエフェクトは持続時間なども設定できるので一定期間アトリビュート値を変化させるバフ、デバフなどにも使用できます。
 ## ゲームプレイキュー
 ゲームプレイエフェクトを適用したことにより発生するパーティクルやSEなどのエフェクトを定義します。ゲームプレイキューはレプリケートに対応しているので、対象のアクターにゲームプレイエフェクトを適用すると各クライアントでも自動的にエフェクトを表示してくれます。
-## ゲームプレイタグ
-ゲームプレイアビリティシステム全般にわたって使用されるタグ定義です。ゲームプレイアビリティの起動からキャラクターのステート管理、イベント発生時の通知パラメータなど幅広く利用されます。
 
 # アビリティシステムの環境構築
 アビリティシステムを使用するためには以下の環境設定が必要になります。
@@ -172,9 +180,618 @@ public class Eta : ModuleRules
   - アトリビュートセット
 <br>
 
+# ゲームプレイタグ(ダイナミックタグ)の作成
+まずはゲームプレイアビリティの各所で使うことになるゲームプレイタグを作成します。  
+ゲームプレイタグはプロジェクト設定のiniファイルで静的に作成できますが、ここではC++で扱いやすくするためにソースコード上で動的に定義します。  
+ファイルはSource/{ProjectName}/直下にヘッダとcppフィルを用意して定義します。
+## ソースコード
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyGameplayTags.h
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright HakumaiGames
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
+
+/**
+ * AuraGameplayTags
+ *
+ * Singleton containing native Gameplay Tags
+ */
+
+struct FAuraGameplayTags
+{
+public:
+	static const FAuraGameplayTags& Get() { return GameplayTags; }
+	static void InitializeNativeGameplayTags();
+
+	// プライマリータグ(キャラクターの基本的な属性)
+	FGameplayTag Attributes_Primary_Strength;
+	FGameplayTag Attributes_Primary_Intelligence;
+	FGameplayTag Attributes_Primary_Resilience;
+	FGameplayTag Attributes_Primary_Vigor;
+
+	// セカンダリータグ(プライマリータグから算出される)
+	FGameplayTag Attributes_Secondary_Armor;
+	FGameplayTag Attributes_Secondary_ArmorPenetration;
+	FGameplayTag Attributes_Secondary_BlockChance;
+	FGameplayTag Attributes_Secondary_CriticalHitChance;
+	FGameplayTag Attributes_Secondary_CriticalHitDamage;
+	FGameplayTag Attributes_Secondary_CriticalHitResistance;
+	FGameplayTag Attributes_Secondary_HealthRegeneration;
+	FGameplayTag Attributes_Secondary_ManaRegeneration;
+	FGameplayTag Attributes_Secondary_MaxHealth;
+	FGameplayTag Attributes_Secondary_MaxMana;
+
+	// 受け取るXPタグ(獲得経験値の増減に使用)
+	FGameplayTag Attributes_Meta_IncomingXP;
+
+	// インプットタグ(入力の種別に利用)
+	FGameplayTag InputTag_LMB;
+	FGameplayTag InputTag_RMB;
+	FGameplayTag InputTag_1;
+	FGameplayTag InputTag_2;
+	FGameplayTag InputTag_3;
+	FGameplayTag InputTag_4;
+	FGameplayTag InputTag_Passive_1;
+	FGameplayTag InputTag_Passive_2;
+
+	// ダメージタグ(ダメージ値を表すために使用)
+	FGameplayTag Damage;		// 通常ダメージ
+	FGameplayTag Damage_Fire;	// 火炎ダメージ
+	FGameplayTag Damage_Lightning;	// 雷撃ダメージ
+	FGameplayTag Damage_Arcane;		// 魔法ダメージ
+	FGameplayTag Damage_Physical;	// 物理ダメージ
+
+	// レジスタンスタグ(属性耐性を表す)
+	FGameplayTag Attributes_Resistance_Fire;
+	FGameplayTag Attributes_Resistance_Lightning;
+	FGameplayTag Attributes_Resistance_Arcane;
+	FGameplayTag Attributes_Resistance_Physical;
+
+	// デバフタグ
+	FGameplayTag Debuff_Burn;
+	FGameplayTag Debuff_Stun;
+	FGameplayTag Debuff_Arcane;
+	FGameplayTag Debuff_Physical;
+
+	FGameplayTag Debuff_Chance;
+	FGameplayTag Debuff_Damage;
+	FGameplayTag Debuff_Duration;
+	FGameplayTag Debuff_Frequency;
+
+	// アビリティタグ
+	FGameplayTag Abilities_None;
+
+	FGameplayTag Abilities_Attack;
+	FGameplayTag Abilities_Summon;
+	FGameplayTag Abilities_Fire_FireBolt;
+	FGameplayTag Abilities_Fire_FireBlast;
+	FGameplayTag Abilities_Lightning_Electrocute;
+	FGameplayTag Abilities_Arcane_ArcaneShards;
+
+	FGameplayTag Abilities_HitReact;
+
+	// パッシブアビリティタグ
+	FGameplayTag Abilities_Passive_HaloOfProtection;
+	FGameplayTag Abilities_Passive_LifeSiphon;
+	FGameplayTag Abilities_Passive_ManaSiphon;
+	
+	// プレイヤータグ(プレイヤーの状態管理に使用)
+	FGameplayTag Player_Block_InputPressed;
+	FGameplayTag Player_Block_InputHeld;
+	FGameplayTag Player_Block_InputReleased;
+	FGameplayTag Player_Block_CursorTrace;
+
+	// ゲームプレイキュータグ
+	FGameplayTag GameplayCue_FireBlast;
+
+	// ステータスタグ(アビリティの状態管理に使用)
+	FGameplayTag Abilities_Status_Locked;
+	FGameplayTag Abilities_Status_Eligible;
+	FGameplayTag Abilities_Status_Unlocked;
+	FGameplayTag Abilities_Status_Equipped;
+
+	// アビリティタイプタグ
+	FGameplayTag Abilities_Type_Offensive;
+	FGameplayTag Abilities_Type_Passive;
+	FGameplayTag Abilities_Type_None;
+
+	// クールダウンタグ(アビリティのクールダウン管理に使用)
+	FGameplayTag Cooldown_Fire_FireBolt;
+
+	// ソケットタグ(攻撃発生位置の分類に使用)
+	FGameplayTag CombatSocket_Weapon;
+	FGameplayTag CombatSocket_RightHand;
+	FGameplayTag CombatSocket_LeftHand;
+	FGameplayTag CombatSocket_Tail;
+
+	// モンタージュタグ(アニメーションモンタージュの分類に使用)
+	FGameplayTag Montage_Attack_1;
+	FGameplayTag Montage_Attack_2;
+	FGameplayTag Montage_Attack_3;
+	FGameplayTag Montage_Attack_4;
+
+	// ダメージタイプタグタグとレジスタンスタグのマッピング(ダメージタイプごとの耐性を取得するために使用)
+	TMap<FGameplayTag, FGameplayTag> DamageTypesToResistances;
+	// ダメージタイプタグとデバフタグのマッピング(ダメージタイプごとのデバフを取得するために使用)
+	TMap<FGameplayTag, FGameplayTag> DamageTypesToDebuffs;
+
+	// イベントタグ(アビリティの発動やエフェクトの適用などのイベントに使用)
+	FGameplayTag Effects_HitReact;
+
+private:
+	static FAuraGameplayTags GameplayTags;
+};
+```
+</div>
+<br>
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  MyGameplayTags.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```cpp
+// Copyright HakumaiGames
+
+
+#include "MyGameplayTags.h"
+#include "GameplayTagsManager.h"
+
+FMyGameplayTags FMyGameplayTags::GameplayTags;
+
+void FMyGameplayTags::InitializeNativeGameplayTags()
+{
+	/*
+	 * Primary Attributes
+	 */
+	GameplayTags.Attributes_Primary_Strength = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Primary.Strength"),
+		FString("Increases physical damage")
+	);
+
+	GameplayTags.Attributes_Primary_Intelligence = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Primary.Intelligence"),
+		FString("Increases magical damage")
+	);
+
+	GameplayTags.Attributes_Primary_Resilience = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Primary.Resilience"),
+		FString("Increases Armor and Armor Penetration")
+	);
+
+	GameplayTags.Attributes_Primary_Vigor = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Primary.Vigor"),
+		FString("Increases Health")
+	);
+
+	/*
+	 * Secondary Attributes
+	 */
+
+	GameplayTags.Attributes_Secondary_Armor = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.Armor"),
+		FString("Reduces damage taken, improves Block Chance")
+	);
+
+	GameplayTags.Attributes_Secondary_ArmorPenetration = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.ArmorPenetration"),
+		FString("Ignores Percentage of enemy Armor, increases Critical Hit Chance")
+	);
+
+	GameplayTags.Attributes_Secondary_BlockChance = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.BlockChance"),
+		FString("Chance to cut incoming damage in half")
+	);
+
+	GameplayTags.Attributes_Secondary_CriticalHitChance = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.CriticalHitChance"),
+		FString("Chance to double damage plus critical hit bonus")
+	);
+
+	GameplayTags.Attributes_Secondary_CriticalHitDamage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.CriticalHitDamage"),
+		FString("Bonus damage added when a critical hit is scored")
+	);
+
+	GameplayTags.Attributes_Secondary_CriticalHitResistance = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.CriticalHitResistance"),
+		FString("Reduces Critical Hit Chance of attacking enemies")
+	);
+
+	GameplayTags.Attributes_Secondary_HealthRegeneration = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.HealthRegeneration"),
+		FString("Amount of Health regenerated every 1 second")
+	);
+
+	GameplayTags.Attributes_Secondary_ManaRegeneration = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.ManaRegeneration"),
+		FString("Amount of Mana regenerated every 1 second")
+	);
+
+	GameplayTags.Attributes_Secondary_MaxHealth = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.MaxHealth"),
+		FString("Maximum amount of Health obtainable")
+	);
+
+	GameplayTags.Attributes_Secondary_MaxMana = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.MaxMana"),
+		FString("Maximum amount of Mana obtainable")
+	);
+
+	/*
+	 * Input Tags
+	 */
+
+	GameplayTags.InputTag_LMB = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.LMB"),
+		FString("Input Tag for Left Mouse Button")
+	);
+
+	GameplayTags.InputTag_RMB = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.RMB"),
+		FString("Input Tag for Right Mouse Button")
+	);
+
+	GameplayTags.InputTag_1 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.1"),
+		FString("Input Tag for 1 key")
+	);
+
+	GameplayTags.InputTag_2 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.2"),
+		FString("Input Tag for 2 key")
+	);
+
+	GameplayTags.InputTag_3 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.3"),
+		FString("Input Tag for 3 key")
+	);
+
+	GameplayTags.InputTag_4 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.4"),
+		FString("Input Tag for 4 key")
+	);
+	GameplayTags.InputTag_Passive_1 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.Passive.1"),
+		FString("Input Tag Passive Ability 1")
+	);
+
+	GameplayTags.InputTag_Passive_2 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.Passive.2"),
+		FString("Input Tag Passive Ability 2")
+	);
+
+	GameplayTags.Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Damage"),
+		FString("Damage")
+	);
+
+	/*
+	 * Damage Types
+	 */
+
+	GameplayTags.Damage_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Damage.Fire"),
+		FString("Fire Damage Type")
+	);
+	GameplayTags.Damage_Lightning = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Damage.Lightning"),
+		FString("Lightning Damage Type")
+	);
+	GameplayTags.Damage_Arcane = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Damage.Arcane"),
+		FString("Arcane Damage Type")
+	);
+	GameplayTags.Damage_Physical = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Damage.Physical"),
+		FString("Physical Damage Type")
+	);
+
+	/*
+	 * Resistances
+	 */
+
+	GameplayTags.Attributes_Resistance_Arcane = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Resistance.Arcane"),
+		FString("Resistance to Arcane damage")
+	);
+	GameplayTags.Attributes_Resistance_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Resistance.Fire"),
+		FString("Resistance to Fire damage")
+	);
+	GameplayTags.Attributes_Resistance_Lightning = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Resistance.Lightning"),
+		FString("Resistance to Lightning damage")
+	);
+	GameplayTags.Attributes_Resistance_Physical = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Resistance.Physical"),
+		FString("Resistance to Physical damage")
+	);
+
+	/*
+	 * Debuffs
+	 */
+
+	GameplayTags.Debuff_Arcane = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Arcane"),
+		FString("Debuff for Arcane damage")
+	);
+	GameplayTags.Debuff_Burn = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Burn"),
+		FString("Debuff for Fire damage")
+	);
+	GameplayTags.Debuff_Physical = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Physical"),
+		FString("Debuff for Physical damage")
+	);
+	GameplayTags.Debuff_Stun = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Stun"),
+		FString("Debuff for Lightning damage")
+	);
+
+	GameplayTags.Debuff_Chance = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Chance"),
+		FString("Debuff Chance")
+	);
+	GameplayTags.Debuff_Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Damage"),
+		FString("Debuff Damage")
+	);
+	GameplayTags.Debuff_Duration = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Duration"),
+		FString("Debuff Duration")
+	);
+	GameplayTags.Debuff_Frequency = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Frequency"),
+		FString("Debuff Frequency")
+	);
+
+	/*
+	 * Meta Attributes
+	 */
+
+	GameplayTags.Attributes_Meta_IncomingXP = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Meta.IncomingXP"),
+		FString("Incoming XP Meta Attribute")
+	);
+
+	/*
+	 * Map of Damage Types to Resistances
+	 */
+	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Arcane, GameplayTags.Attributes_Resistance_Arcane);
+	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Lightning, GameplayTags.Attributes_Resistance_Lightning);
+	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Physical, GameplayTags.Attributes_Resistance_Physical);
+	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Fire, GameplayTags.Attributes_Resistance_Fire);
+
+	/*
+	 * Map of Damage Types to Debuffs
+	 */
+	GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Arcane, GameplayTags.Debuff_Arcane);
+	GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Lightning, GameplayTags.Debuff_Stun);
+	GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Physical, GameplayTags.Debuff_Physical);
+	GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Fire, GameplayTags.Debuff_Burn);
+
+	/*
+	 * Effects
+	 */
+
+	GameplayTags.Effects_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Effects.HitReact"),
+		FString("Tag granted when Hit Reacting")
+	);
+
+
+	/*
+	 * Abilities
+	 */
+
+	GameplayTags.Abilities_None = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.None"),
+		FString("No Ability - like the nullptr for Ability Tags")
+	);
+
+	GameplayTags.Abilities_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Attack"),
+		FString("Attack Ability Tag")
+	); 
+	GameplayTags.Abilities_Summon = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Summon"),
+		FString("Summon Ability Tag")
+	);
+
+	/*
+	 * Ofensive Spells
+	 */
+
+	GameplayTags.Abilities_Fire_FireBolt = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Fire.FireBolt"),
+		FString("FireBolt Ability Tag")
+	);
+
+	GameplayTags.Abilities_Fire_FireBlast = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Fire.FireBlast"),
+		FString("FireBlast Ability Tag")
+	);
+
+	GameplayTags.Abilities_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.HitReact"),
+		FString("Hit React Ability")
+	);
+	GameplayTags.Abilities_Lightning_Electrocute = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Lightning.Electrocute"),
+		FString("Electrocute Ability Tag")
+	);
+
+	GameplayTags.Abilities_Arcane_ArcaneShards = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Arcane.ArcaneShards"),
+		FString("Arcane Shards Ability Tag")
+	);
+
+	/*
+	 * Passive Spells
+	 */
+
+	GameplayTags.Abilities_Passive_LifeSiphon = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Passive.LifeSiphon"),
+		FString("Life Siphon")
+	);
+	GameplayTags.Abilities_Passive_ManaSiphon = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Passive.ManaSiphon"),
+		FString("Mana Siphon")
+	);
+	GameplayTags.Abilities_Passive_HaloOfProtection = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Passive.HaloOfProtection"),
+		FString("Halo Of Protection")
+	);
+
+	/*
+	 * Ability Status
+	 */
+	GameplayTags.Abilities_Status_Eligible = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Status.Eligible"),
+		FString("Eligible Status")
+	);
+
+	GameplayTags.Abilities_Status_Equipped = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Status.Equipped"),
+		FString("Equipped Status")
+	);
+
+	GameplayTags.Abilities_Status_Locked = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Status.Locked"),
+		FString("Locked Status")
+	);
+
+	GameplayTags.Abilities_Status_Unlocked = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Status.Unlocked"),
+		FString("Unlocked Status")
+	);
+
+
+	/*
+	 * Ability Types
+	 */
+
+	GameplayTags.Abilities_Type_None = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Type.None"),
+		FString("Type None")
+	);
+
+	GameplayTags.Abilities_Type_Offensive = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Type.Offensive"),
+		FString("Type Offensive")
+	);
+
+	GameplayTags.Abilities_Type_Passive = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Type.Passive"),
+		FString("Type Passive")
+	);
+
+	
+	/*
+	 * Cooldown
+	 */
+
+	GameplayTags.Cooldown_Fire_FireBolt = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Cooldown.Fire.FireBolt"),
+		FString("FireBolt Cooldown Tag")
+	);
+
+	/*
+	 * Combat Sockets
+	 */
+
+	GameplayTags.CombatSocket_Weapon = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("CombatSocket.Weapon"),
+		FString("Weapon")
+	);
+
+	GameplayTags.CombatSocket_RightHand = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("CombatSocket.RightHand"),
+		FString("Right Hand")
+	);
+
+	GameplayTags.CombatSocket_LeftHand = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("CombatSocket.LeftHand"),
+		FString("Left Hand")
+	);
+
+	GameplayTags.CombatSocket_Tail = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("CombatSocket.Tail"),
+		FString("Tail")
+	);
+
+	/*
+	 * Montage Tags
+	 */
+
+	GameplayTags.Montage_Attack_1 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Montage.Attack.1"),
+		FString("Attack 1")
+	);
+
+	GameplayTags.Montage_Attack_2 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Montage.Attack.2"),
+		FString("Attack 2")
+	);
+
+	GameplayTags.Montage_Attack_3 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Montage.Attack.3"),
+		FString("Attack 3")
+	);
+
+	GameplayTags.Montage_Attack_4 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Montage.Attack.4"),
+		FString("Attack 4")
+	);
+
+
+	/*
+	 * Player Tags
+	 */
+
+	GameplayTags.Player_Block_CursorTrace = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Player.Block.CursorTrace"),
+		FString("Block tracing under the cursor")
+	);
+
+	GameplayTags.Player_Block_InputHeld = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Player.Block.InputHeld"),
+		FString("Block Input Held callback for input")
+	);
+
+	GameplayTags.Player_Block_InputPressed = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Player.Block.InputPressed"),
+		FString("Block Input Pressed callback for input")
+	);
+
+	GameplayTags.Player_Block_InputReleased = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Player.Block.InputReleased"),
+		FString("Block Input Released callback for input")
+	);
+
+	/*
+	 * GameplayCues
+	 */
+
+	GameplayTags.GameplayCue_FireBlast = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("GameplayCue.FireBlast"),
+		FString("FireBlast GameplayCue Tag")
+	);
+}
+```
+</div>
+<br>
+
 # アビリティの作成
-プロジェクト用のアビリティクラスを作成します。GameplayAbilityを派生させます。
-## ダイナミックタグの設定
+すべてのアビリティの基礎となるプロジェクト用のアビリティクラスを作成します。GameplayAbilityを派生させます。
+
 ## ソースコード
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
   MyAbility.h
@@ -222,7 +839,8 @@ public:
 <br>
 
 # アトリビュートセットの作成
-アトリビュートセットクラスを作成し、以下の実装を行います。
+## アトリビュートセットの実装
+アトリビュートセットでは以下の実装を行います。
 - ゲームで使用するアトリビュートの定義
   - プライマリアトリビュート  
     キャラクターの基本的な能力  
@@ -257,6 +875,7 @@ public:
 
   などに使います。
 
+## アトリビュートセットのソースコード
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
   MyAttributeSet.h
 </div>
@@ -673,9 +1292,18 @@ void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 </div>
 <br>
 
+## アトリビュートセットの初期化
+アトリビュートセットはアビリティシステムコンポーネントが保持している
+```
+TArray<FAttributeDefaults>	DefaultStartingData;
+```
+という配列に、アトリビュートセットとデータテーブルを登録することによって初期化できます。設定するデータテーブルの行名はアトリビュートのメンバ変数名となります。  
+キャラクター側でこの配列に動的に追加を行いたい場合はPreInitializeComponentsで行う必要があります。(この配列はComponents::OnRegisterで参照されるため)
+TODO
+
 # アビリティシステムコンポーネントの作成
 アビリティシステムの基幹となるアビリティシステムコンポーネントを作成します。  
-アビリティシステムコンポーネントには以下の機能を持たせます。
+AbilitySystemComponentを派生させてプロジェクト用のアビリティシステムコンポーネントを作成し、以下の機能を持たせます。
 
 ## アビリティシステムのレプリケーション
 アビリティシステムはネットワーク対応で３つのレプリケーションモードがあります。このモードによりゲームプレイエフェクトのレプリケーションのされ方が変わります。
@@ -699,7 +1327,7 @@ void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 
 今回のソースでは、プレイヤーキャラクターが混合 (Mixed)を使用するため、InitAbilityActorInfoで指定するオーナーアクターはプレイヤーステートになります。
 
-## アビリティの付与
+## アビリティの付与機能
 通常アビリティとパッシブアビリティをアビリティシステムに付与します。  
 必要に応じてキャラクタークラスから呼び出されることを想定しています。
 ```cpp
@@ -708,11 +1336,11 @@ void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilitie
 // ASCにパッシブアビリティ付与
 void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities, int32 Level = 1);
 ```
-### アビリティ
+### 通常アビリティとは
 通常アビリティは必要に応じて都度アクティベート処理が実行されます。
-### パッシブアビリティ
+### パッシブアビリティとは
 パッシブアビリティは、付与と同時にアクティベートが行われるアビリティになります。
-### アビリティスペック
+### アビリティスペックとは
 アビリティスペックはコンポーネントにアビリティが付与されたときに内部で生成・保持される「付与済みアビリティのレコード」です。付与されたアビリティに対する一種のハンドルのようなものです。  
 アビリティのクラス、レベル、入力ID（ホットキー割当て）、一意のハンドルなどを保持していて、このスペックを使ってアビリティを起動/停止したり、参照・削除することができます。
 
@@ -2016,18 +2644,21 @@ Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
   コーディングで様々なアトリビュートや数値から動的にゲームプレイエフェクトを生成して適用させる  
   エフェクトはいくらでも作って適応できるので同時に複数のアトリビュートを変更することができる
 ### 期間ポリシー
-ゲームプレイエフェクトは、その有効期間を設定する期間ポリシー(Duration Policy)が存在します。
-- Instant  
-  1回限りのアクションで即座に適用されるインスタントエフェクト
-- Has Duration  
-  ゲームプレイエフェクトが有効になる期間を指定できる  
-  一定期間Attributeを変更し、期間が終了したら元の値に戻る
-- Inifinit  
-  ゲームプレイエフェクトtの効果を永続的に適用したままにする  
-  後で手動でエフェクトを削除することもできる  
-  期間適用する必要があるかわからない場合やゲームプレイに応じて削除する必要がある場合に役立つ
+ゲームプレイエフェクトは、その有効期間を設定する期間ポリシー(Duration Policy)が存在します。  
+期間ポリシーにかかわらずエフェクトを削除したい売は[こちら](#ゲームプレイエフェクトの適用と削除)を参照してください。
+#### Instant  
+1回限りのアクションで即座に適用されるイン スタントエフェクトで、ベース値を書き換えるます。
+#### Has Duration  
+ゲームプレイエフェクトが有効になる期間を指定できます。  
+一定期間Attributeを変更し、期間が終了したら元の値に戻ります。  
+バフなどに用いられます。
+#### Inifinit  
+ゲームプレイエフェクトの効果を永続的に適用したままにします。  
+期間適用する必要があるかわからない場合やゲームプレイに応じて削除する必要がある場合に役立ちます。  
+セカンダリアトリビュートなどにも用いられます。  
 ### スタッキング
-ゲームプレイフェクトはスタック可能で、どのようなルールでスタックさせるかの独自のポリシーを設定できます。
+ゲームプレイフェクトはスタック可能で、どのようなルールでスタックさせるかの独自のポリシーを設定できます。  
+詳細は[こちら](#ゲームプレイエフェクトのスタッキング)で説明しています。
 ### ゲームプレイタグの追加
 ゲームプレイエフェクトが有効な間、対象のアビリティシステムコンポーネントにゲームプレイタグを追加することができます。
 ### アビリティの付与
@@ -2253,33 +2884,91 @@ void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 </div>
 <br>
 
+### 呼び出し元の設定による変更
+マグニチュードを呼び出し元で計算して指定する方式です。  
+ゲームプレイエフェクトスペックハンドルを作成した後、UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude関数で、スペックハンドルにゲームプレイタグとfloat値のペアを書き込みます。  
+ゲームプレイエフェクトではモディファイアを追加し、計算タイプを「Set by Caller」に設定して、データタグにスペックハンドルに書き込んだゲームプレイタグを設定します。  
+これによりマグニチュードがスペックハンドルに書き込んだゲームプレイタグに対応するfloat値になります。  
+ScalableFloatやアトリビュートベースのような決まった計算ではなく、C++でゲームプレイエフェクト生成時に自由にマグニチュード計算したい場合に便利です。  
+TODO
 
-### 呼び出し元の設定値に変更
-プライマリアトリビュートの亜種
 
 ### MMC(Modiier Magnitude Calculations)による変更
+TODO
 
 ### ExecutionCalculationによる変更
-
-### アトリビュート変更の事前処理
-PreAttributeChange
-
-### アトリビュート変更の事後処理
-PostAttributeChange
+TODO
 
 ### モディファイアの計算順序
+TODO
 
 ### モディファイアの係数
+TODO
 
+## アトリビュート変更の事前処理
+モディファイアによりアトリビュート変更が行われる直前に
+```cpp
+void UAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue);
+```
+という関数をオーバーライドして処理を挟むことができます。  
+ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です(HealthとHealthMax、ManaとManaMaxなどのクランプなど)。  
+ここでのクランプは「不正な値を遮断」する意味があります。
+TODO
 
-## エフェクトの存続期間
+## アトリビュート変更の事後処理
+PostAttributeChange
+モディファイアによりアトリビュート変更が行われた後に
+```cpp
+void UAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+```
+という関数をオーバーライドして処理を挟むことができます。  
+ここでは計算後に最終的にセットしようとしている新しい値を見て、それに対して何か別の値の変更を行いたい場合に便利です。  
+例えば、レベルアップ時にMaxHealthが変更された場合に、Healthも全回復させたい場合などに、ここに処理を挟みます。  
+TODO
 
-### 即時型
+## ゲームプレイエフェクトの適用と削除
+TODO
 
-### 期間型
-HPバフ
+## ゲームプレイエフェクトのスタッキング
+ゲームプレイフェクトはスタック可能で、どのようなルールでスタックさせるかの独自のポリシーを設定できます。  
+TODO
 
-### 周期型
-DoT
+## アトリビュート変更の検知
+アビリティシステムコンポーネントはアトリビュート値が変化したときに発生するデリゲートを持っています。
+TODO
 
-## エフェクトのスタックルール
+## ゲームプレイエフェクト変更の検知
+アビリティシステムコンポーネントはゲームプレイエフェクトが適用・除去されたときに呼び出されるデリゲートを持っています。
+TODO
+
+## ゲームプレイエフェクトのコンポーネント
+ゲームプレイエフェクトには専用のコンポーネントが追加できます。  
+これによりアトリビュートの変更以外に様々な機能を持たせることができます。  
+以下がコンポーネントのリストです。
+- UIデータ(テキストのみ)  
+  テキストのみを含むUIデータを持たせます。  
+  これは主に、UGameplayEffectUIDataのサブクラスの例として使用します。
+  ゲームにはテキストのみが必要な場合は、このクラスを使用するのが妥当です。
+  追加のデータを含めるためには、UGameplayEffectUIDataのカスタムサブクラスを作成します。
+- このエフェクトにあるタグ(アセットタグ)  
+  ゲームプレイエフェクトが持つ(所有する)タグを設定できます。これらはゲームプレイエフェクトが有効な間アビリティシステムコンポーネントで保持されますが、アクターには転送「されません」。  
+  タグは継承されたタグに対して「追加するタグ」と「削除するタグ」を指定できるので、設定次第ではエフェクト適用中に特定のタグを無効化するといったことも可能です。
+- このエフェクトを適用/継続するにはタグが必要  
+  このエフェクトを適用・継続するために必要なターゲット(ゲームプレイエフェクトのオーナー)のタグ要件を設定できます。
+- このエフェクトを適用するチャンス  
+  ゲームプレイエフェクトの適用条件に確立を設定できます。
+- カスタムでこのエフェクトを適用可能  
+  CustomApplicationRequirement関数を処理して、このGameplayEffectを適用するかどうかを決定できます。
+- ゲームプレイアビリティを付与  
+  アクティブな間に追加のゲームプレイアビリティをゲームプレイエフェクトのターゲットに適用します。
+- タグ付きのアビリティをブロック
+  オーナーのゲームプレイエフェクトのターゲットアクタに対するゲームプレイタグに基づいて、ゲームプレイアビリティのアクティベーションのブロックを処理します
+- ターゲットアクタにタグを付与  
+  ゲームプレイエフェクトのターゲット(「オーナー」という場合もあります)にタグを付与します。このタグはアクターに付与されるもので、アビリティシステムコンポーネントには付与「されません」。
+- 他のエフェクトに対する耐性  
+  他のゲームプレイエフェクトスペックの適用をブロックします。  
+  アビリティシステムコンポーネントにグローバルハンドラを登録することで他のゲームプレイエフェクトスペックの適用をブロックします。
+- 他のエフェクトを除去  
+  特定の条件に基づいて、他のゲームプレイエフェクトを削除します
+- 追加のエフェクトを適用  
+  特定の条件下(または条件なし)で他のゲームプレイエフェクトを適用します。
