@@ -24,6 +24,10 @@
 	- [ソースコード](#ソースコード-1)
 - [アトリビュートセットの作成](#アトリビュートセットの作成)
 	- [アトリビュートセットの実装](#アトリビュートセットの実装)
+	- [ゲームプレイエフェクト適用前の処理](#ゲームプレイエフェクト適用前の処理)
+	- [ゲームプレイエフェクト適用後の処理](#ゲームプレイエフェクト適用後の処理)
+	- [アトリビュート変更前の処理](#アトリビュート変更前の処理)
+	- [アトリビュート変更後の処理](#アトリビュート変更後の処理)
 	- [アトリビュートセットのソースコード](#アトリビュートセットのソースコード)
 	- [アトリビュートセットの初期化](#アトリビュートセットの初期化)
 - [アビリティシステムコンポーネントの作成](#アビリティシステムコンポーネントの作成)
@@ -89,13 +93,12 @@
 		- [ExecutionCalculationによる変更](#executioncalculationによる変更)
 		- [モディファイアの計算順序](#モディファイアの計算順序)
 		- [モディファイアの係数](#モディファイアの係数)
-	- [アトリビュート変更の事前処理](#アトリビュート変更の事前処理)
-	- [アトリビュート変更の事後処理](#アトリビュート変更の事後処理)
 	- [ゲームプレイエフェクトの適用と削除](#ゲームプレイエフェクトの適用と削除)
 	- [ゲームプレイエフェクトのスタッキング](#ゲームプレイエフェクトのスタッキング)
 	- [アトリビュート変更の検知](#アトリビュート変更の検知)
 	- [ゲームプレイエフェクト変更の検知](#ゲームプレイエフェクト変更の検知)
 	- [ゲームプレイエフェクトのコンポーネント](#ゲームプレイエフェクトのコンポーネント)
+- [ゲームプレイイベント](#ゲームプレイイベント)
 
 # アビリティシステムの概要
 アビリティシステムは以下のパーツから構成されています。  
@@ -199,15 +202,15 @@ public class Eta : ModuleRules
 #include "GameplayTagContainer.h"
 
 /**
- * AuraGameplayTags
+ * MyGameplayTags
  *
  * Singleton containing native Gameplay Tags
  */
 
-struct FAuraGameplayTags
+struct FMyGameplayTags
 {
 public:
-	static const FAuraGameplayTags& Get() { return GameplayTags; }
+	static const FMyGameplayTags& Get() { return GameplayTags; }
 	static void InitializeNativeGameplayTags();
 
 	// プライマリータグ(キャラクターの基本的な属性)
@@ -326,7 +329,7 @@ public:
 	FGameplayTag Effects_HitReact;
 
 private:
-	static FAuraGameplayTags GameplayTags;
+	static FMyGameplayTags GameplayTags;
 };
 ```
 </div>
@@ -864,9 +867,8 @@ public:
   ゲームプレイエフェクトの評価(マグニチュード計算、ExecutionCalculation実行)により変更すべきアトリビュートと値が決定されます。その後、各アトリビュートに対して「これから値を変える」段階でこの関数が呼ばれます。  
   ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です。  
   例)HealthとHealthMax、ManaとManaMaxなどのクランプ処理を行う
-- PostGameplayEffectExecuteのオーバーライド  
-  GameplayEffect適用後の呼ばれる処理。
-  各アトリビュートに対して「値が変わった」段階でこの関数が呼ばれます。  
+- PostAttributeChangedのオーバーライド  
+  ゲームプレイエフェクトの評価により各アトリビュートに対して「値が変わった」段階でこの関数が呼ばれます。  
   アトリビュート変更後の
   - 最終的なクランプ
   - メタアトリビュートによる計算と結果の反映
@@ -874,6 +876,44 @@ public:
     ゲームプレイエフェクトの適用、UIやエフェクトの表示処理
 
   などに使います。
+
+## ゲームプレイエフェクト適用前の処理
+アトリビュートに対してゲームプレイエフェクトが適用された前に
+```cpp
+bool UMyAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData &Data);
+```
+という関数をオーバーライドして処理を挟むことができます。
+TODO
+
+## ゲームプレイエフェクト適用後の処理
+アトリビュートに対してゲームプレイエフェクトが適用された後に
+```cpp
+void UMyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data);
+```
+という関数をオーバーライドして処理を挟むことができます。
+ここではエフェクトにより変更されたアトリビュートの値に応じてさまざまな処理を行います。  
+最終的な値のクランプ、ダメージを受けたことによるノックバックや死亡、経験上昇によるレベルアップ処理などです。
+
+## アトリビュート変更前の処理
+モディファイアによりアトリビュート変更が行われる直前に
+```cpp
+void UAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue);
+```
+という関数をオーバーライドして処理を挟むことができます。  
+ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です(HealthとHealthMax、ManaとManaMaxなどのクランプなど)。  
+ここでのクランプは「不正な値を遮断」する意味があります。
+TODO
+
+## アトリビュート変更後の処理
+PostAttributeChange
+モディファイアによりアトリビュート変更が行われた後に
+```cpp
+void UAttributeSet::PostAttributeChanged(const FGameplayEffectModCallbackData& Data) override;
+```
+という関数をオーバーライドして処理を挟むことができます。  
+ここでは計算後に最終的にセットしようとしている新しい値を見て、それに対して何か別の値の変更を行いたい場合に便利です。  
+例えば、レベルアップ時にMaxHealthが変更された場合に、Healthも全回復させたい場合などに、ここに処理を挟みます。  
+TODO
 
 ## アトリビュートセットのソースコード
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
@@ -2613,7 +2653,7 @@ Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
       - HarcoreValue  
         指定された値をそのままマグニチュードとして扱う
       - Table  
-        ゲームプレイエフェクトのレベルに基づいて大きさを調整するテーブルを使用する
+        データテーブルを使ってアトリビュート値からマグニチュード値を引く
     - AttributeBased  
       他のアトリビュートの値をベースに計算する  
       プレイヤーの最大HPをStrengthと同じとしたり、その10倍の値とするなど  
@@ -2905,27 +2945,6 @@ TODO
 ### モディファイアの係数
 TODO
 
-## アトリビュート変更の事前処理
-モディファイアによりアトリビュート変更が行われる直前に
-```cpp
-void UAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue);
-```
-という関数をオーバーライドして処理を挟むことができます。  
-ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です(HealthとHealthMax、ManaとManaMaxなどのクランプなど)。  
-ここでのクランプは「不正な値を遮断」する意味があります。
-TODO
-
-## アトリビュート変更の事後処理
-PostAttributeChange
-モディファイアによりアトリビュート変更が行われた後に
-```cpp
-void UAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-```
-という関数をオーバーライドして処理を挟むことができます。  
-ここでは計算後に最終的にセットしようとしている新しい値を見て、それに対して何か別の値の変更を行いたい場合に便利です。  
-例えば、レベルアップ時にMaxHealthが変更された場合に、Healthも全回復させたい場合などに、ここに処理を挟みます。  
-TODO
-
 ## ゲームプレイエフェクトの適用と削除
 TODO
 
@@ -2972,3 +2991,5 @@ TODO
   特定の条件に基づいて、他のゲームプレイエフェクトを削除します
 - 追加のエフェクトを適用  
   特定の条件下(または条件なし)で他のゲームプレイエフェクトを適用します。
+
+# ゲームプレイイベント
