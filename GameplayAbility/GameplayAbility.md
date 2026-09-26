@@ -131,10 +131,10 @@ GameplayAbilityを使うためにはプラグインを以下の手順で有効�
 エディタを再起動させます
 
 ## Build.csにモジュールを追加  
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyProject.Build.cs
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```csharp
 // Copyright Epic Games, Inc. All Rights Reserved.
@@ -188,10 +188,10 @@ public class Eta : ModuleRules
 ゲームプレイタグはプロジェクト設定のiniファイルで静的に作成できますが、ここではC++で扱いやすくするためにソースコード上で動的に定義します。  
 ファイルはSource/{ProjectName}/直下にヘッダとcppフィルを用意して定義します。
 ## ソースコード
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyGameplayTags.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright HakumaiGames
@@ -334,10 +334,10 @@ private:
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyGameplayTags.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright HakumaiGames
@@ -796,10 +796,10 @@ void FMyGameplayTags::InitializeNativeGameplayTags()
 すべてのアビリティの基礎となるプロジェクト用のアビリティクラスを作成します。GameplayAbilityを派生させます。
 
 ## ソースコード
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyAbility.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -826,10 +826,10 @@ public:
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyAbility.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Fill out your copyright notice in the Description page of Project Settings.
@@ -878,48 +878,319 @@ public:
   などに使います。
 
 ## ゲームプレイエフェクト適用前の処理
-アトリビュートに対してゲームプレイエフェクトが適用された前に
+アトリビュートに対してゲームプレイエフェクトが適用された前にPreGameplayEffectExecuteという関数をオーバーライドして処理を挟むことができます。
 ```cpp
-bool UMyAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData &Data);
+bool UMyAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData &Data)
+{
+	return Super::PreGameplayEffectExecute(Data);
+}
 ```
-という関数をオーバーライドして処理を挟むことができます。
-TODO
 
 ## ゲームプレイエフェクト適用後の処理
-アトリビュートに対してゲームプレイエフェクトが適用された後に
-```cpp
-void UMyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data);
-```
-という関数をオーバーライドして処理を挟むことができます。
+アトリビュートに対してゲームプレイエフェクトが適用された後にという関数をオーバーライドして処理を挟むことができます。
 ここではエフェクトにより変更されたアトリビュートの値に応じてさまざまな処理を行います。  
 最終的な値のクランプ、ダメージを受けたことによるノックバックや死亡、経験上昇によるレベルアップ処理などです。
+```cpp
+void UMyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+
+	// アトリビュートをクランプする
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+	}
+	if (Data.EvaluatedData.Attribute == GetManaAttribute())
+	{
+		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
+	}
+
+	// メタアトリビュートを使った計算
+}
+```
 
 ## アトリビュート変更前の処理
-モディファイアによりアトリビュート変更が行われる直前に
-```cpp
-void UAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue);
-```
-という関数をオーバーライドして処理を挟むことができます。  
+モディファイアによりアトリビュート変更が行われる直前にPreAttributeChangeという関数をオーバーライドして処理を挟むことができます。  
 ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です(HealthとHealthMax、ManaとManaMaxなどのクランプなど)。  
 ここでのクランプは「不正な値を遮断」する意味があります。
-TODO
+```cpp
+void UMyAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	Super::PreAttributeChange(Attribute, NewValue);
+
+	if (Attribute == GetHealthAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
+	}
+	if (Attribute == GetManaAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
+	}
+}
+```
+
 
 ## アトリビュート変更後の処理
-PostAttributeChange
-モディファイアによりアトリビュート変更が行われた後に
-```cpp
-void UAttributeSet::PostAttributeChanged(const FGameplayEffectModCallbackData& Data) override;
-```
-という関数をオーバーライドして処理を挟むことができます。  
+モディファイアによりアトリビュート変更が行われた後にPostAttributeChangeという関数をオーバーライドして処理を挟むことができます。  
 ここでは計算後に最終的にセットしようとしている新しい値を見て、それに対して何か別の値の変更を行いたい場合に便利です。  
-例えば、レベルアップ時にMaxHealthが変更された場合に、Healthも全回復させたい場合などに、ここに処理を挟みます。  
-TODO
+例えばレベルアップ時にヘルス、マナ全回復フラグをセットしておき、最大ヘルス・最大マナの変化と一緒に全回復させたい場合などに、ここに処理を挟みます。  
+```cpp
+void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+
+	// 体力全回復フラグの処理
+	if (Attribute == GetMaxHealthAttribute() && bTopOffHealth)
+	{
+		SetHealth(GetMaxHealth());
+		bTopOffHealth = false;
+	}
+	// マナ全回復フラグの処理
+	if (Attribute == GetMaxManaAttribute() && bTopOffMana)
+	{
+		SetMana(GetMaxMana());
+		bTopOffMana = false;
+	}
+}
+```
 
 ## アトリビュートセットのソースコード
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
+MyAttributeSet.h
+</div>
+<div style="max-height: 300px; overflow-y: auto;">
+
+```cpp
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AttributeSet.h"
+#include "AbilitySystemComponent.h"
+#include "MyAttributeSet.generated.h"
+
+// アトリビュートのアクセス用マクロ
+#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
+	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+
+/**
+ * ゲームで使用するアトリビュートの設定クラス
+ */
+UCLASS()
+class ETA_API UMyAttributeSet : public UAttributeSet
+{
+	GENERATED_BODY()
+	
+public:
+	/*
+	 * プライマリーアトリビュート
+	 */
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Strength, Category = "Primary Attributes")
+	FGameplayAttributeData Strength;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, Strength);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Intelligence, Category = "Primary Attributes")
+	FGameplayAttributeData Intelligence;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, Intelligence);
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Resilience, Category = "Primary Attributes")
+
+	FGameplayAttributeData Resilience;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, Resilience);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Vigor, Category = "Primary Attributes")
+	FGameplayAttributeData Vigor;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, Vigor);
+
+	/*
+	 * セカンダリーアトリビュート
+	 */
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Armor, Category = "Secondary Attributes")
+	FGameplayAttributeData Armor;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, Armor);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_ArmorPenetration, Category = "Secondary Attributes")
+	FGameplayAttributeData ArmorPenetration;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, ArmorPenetration);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BlockChance, Category = "Secondary Attributes")
+	FGameplayAttributeData BlockChance;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, BlockChance);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CriticalHitChance, Category = "Secondary Attributes")
+	FGameplayAttributeData CriticalHitChance;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, CriticalHitChance);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CriticalHitDamage, Category = "Secondary Attributes")
+	FGameplayAttributeData CriticalHitDamage;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, CriticalHitDamage);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CriticalHitResistance, Category = "Secondary Attributes")
+	FGameplayAttributeData CriticalHitResistance;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, CriticalHitResistance);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_HealthRegeneration, Category = "Secondary Attributes")
+	FGameplayAttributeData HealthRegeneration;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, HealthRegeneration);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_ManaRegeneration, Category = "Secondary Attributes")
+	FGameplayAttributeData ManaRegeneration;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, ManaRegeneration);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Vital Attributes")
+	FGameplayAttributeData MaxHealth;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, MaxHealth);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxMana, Category = "Vital Attributes")
+	FGameplayAttributeData MaxMana;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, MaxMana);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_FireResistance, Category = "Resistance Attributes")
+	FGameplayAttributeData FireResistance;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, FireResistance);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_LightningResistance, Category = "Resistance Attributes")
+	FGameplayAttributeData LightningResistance;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, LightningResistance);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_ArcaneResistance, Category = "Resistance Attributes")
+	FGameplayAttributeData ArcaneResistance;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, ArcaneResistance);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_PhysicalResistance, Category = "Resistance Attributes")
+	FGameplayAttributeData PhysicalResistance;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, PhysicalResistance);
+
+	/*
+	 * バイタルアトリビュート
+	 */
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category = "Vital Attributes")
+	FGameplayAttributeData Health;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, Health);
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Mana, Category = "Vital Attributes")
+	FGameplayAttributeData Mana;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, Mana);
+
+	/*
+	 * メタアトリビュート
+	 *
+	 * GASメタアトリビュートという型が用意されているわけではない
+	 * レプリケートせず、サーバー上で計算を行うためだけ用意するアトリビュート
+	 */
+	 // 到着ダメージ。この値に防御やパリーなどの要素を加味して受けるダメージを計算する
+	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
+	FGameplayAttributeData IncomingDamage;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, IncomingDamage);
+
+	// 取得経験値
+	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
+	FGameplayAttributeData IncomingXP;
+	ATTRIBUTE_ACCESSORS(UMyAttributeSet, IncomingXP);
+
+	/*
+	 * プライマリーアトリビュートのレプリケーション関数
+	 */
+	UFUNCTION()
+	void OnRep_Strength(const FGameplayAttributeData& OldStrength) const;
+
+	UFUNCTION()
+	void OnRep_Intelligence(const FGameplayAttributeData& OldIntelligence) const;
+
+	UFUNCTION()
+	void OnRep_Resilience(const FGameplayAttributeData& OldResilience) const;
+
+	UFUNCTION()
+	void OnRep_Vigor(const FGameplayAttributeData& OldVigor) const;
+
+	/*
+	 * セカンダリーアトリビュートのレプリケーション関数
+	 */
+	UFUNCTION()
+	void OnRep_Armor(const FGameplayAttributeData& OldArmor) const;
+
+	UFUNCTION()
+	void OnRep_ArmorPenetration(const FGameplayAttributeData& OldArmorPenetration) const;
+
+	UFUNCTION()
+	void OnRep_BlockChance(const FGameplayAttributeData& OldBlockChance) const;
+
+	UFUNCTION()
+	void OnRep_CriticalHitChance(const FGameplayAttributeData& OldCriticalHitChance) const;
+
+	UFUNCTION()
+	void OnRep_CriticalHitDamage(const FGameplayAttributeData& OldCriticalHitDamage) const;
+
+	UFUNCTION()
+	void OnRep_CriticalHitResistance(const FGameplayAttributeData& OldCriticalHitResistance) const;
+
+	UFUNCTION()
+	void OnRep_HealthRegeneration(const FGameplayAttributeData& OldHealthRegeneration) const;
+
+	UFUNCTION()
+	void OnRep_ManaRegeneration(const FGameplayAttributeData& OldManaRegeneration) const;
+
+	UFUNCTION()
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const;
+
+	UFUNCTION()
+	void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const;
+
+	/*
+	* バイタルアトリビュートのレプリケーション関数
+	*/
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
+
+	UFUNCTION()
+	void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
+
+	/*
+	 * 抵抗値アトリビュートのレプリケーション関数
+	 */
+	UFUNCTION()
+	void OnRep_FireResistance(const FGameplayAttributeData& OldFireResistance) const;
+
+	UFUNCTION()
+	void OnRep_LightningResistance(const FGameplayAttributeData& OldLightningResistance) const;
+
+	UFUNCTION()
+	void OnRep_ArcaneResistance(const FGameplayAttributeData& OldArcaneResistance) const;
+
+	UFUNCTION()
+	void OnRep_PhysicalResistance(const FGameplayAttributeData& OldPhysicalResistance) const;
+
+	// アトリビュートのレプリケーション設定
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	// GameplayEffect適用前の処理
+	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) { return true; }
+
+	// GameplayEffect適用後の処理
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	// アトリビュート変更前の処理
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	// アトリビュート変更後の処理
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+
+private:
+	// ヘルスとマナを全回復するかどうかのフラグ
+	bool bTopOffHealth = false;
+	bool bTopOffMana = false;
+};
+```
+</div>
+<br>
+
+<div style="background-color: #333;">
   MyAttributeSet.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Fill out your copyright notice in the Description page of Project Settings.
@@ -1141,10 +1412,10 @@ private:
 ```
 </div>
   
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyAttributeSet.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 //  Copyright MyGameCompany. All Rights Reserved.
@@ -1440,10 +1711,10 @@ void SetAbilityLevel(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel)
 ```
 
 ## ソースコード
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyAbilitySystemComponent.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -1525,10 +1796,10 @@ private:
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyAbilitySystemComponent.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -1789,10 +2060,10 @@ IAbilitySystemInterfaceに定義されているGetAbilitySystemComponent関数�
 シンプルに自身が保持しているコンポーン年とを返すだけです。
 
 ## ソースコード
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyPlayerState.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -1839,10 +2110,10 @@ protected:
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyPlayerState.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2034,10 +2305,10 @@ void AMyCharacter::InitializeAbilitySystem(AActor* InOwnerActor, AActor* InAvata
 ```
 
 ## ソースコード
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyCharacter.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2117,10 +2388,10 @@ private:
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyCharacter.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2242,10 +2513,10 @@ void AMyCharacter::InitializeAbilitySystem(AActor* InOwnerActor, AActor* InAvata
 またプレイヤーキャラクターにはカメラが必要なのでスプリングアームとカメラのコンポーネントを追加しておきます。
 ## ソースコード
 
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyPlayerCharacter.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2288,10 +2559,10 @@ private:
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyPlayerCharacter.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2361,10 +2632,10 @@ void AMyPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 エネミーキャラクターの場合、アビリティシステムコンポーネントとアトリビュートセットはコンストラクタ内で自分自身で生成・保持します。アビリティーシステム初期化関数のInitializeAbilitySystemはBeginPlayで呼びます。  
 PossessedByはAIControllerに所有されたときのBehaviorTreeの初期化をコメントアウトで残してあります。
 ## ソースコード
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyEnemyCharacter.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2413,10 +2684,10 @@ protected:
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyEnemyCharacter.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2478,10 +2749,10 @@ void AMyEnemyCharacter::BeginPlay()
 
 # プレイヤーコントローラーの作成
 プレイヤーコントローラーは特別なことはしません。プレイヤーコントローラクラスを派生させてプロジェクト用のプレイヤーコントローラーを作成します。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyPlayerController.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2504,10 +2775,10 @@ class ETA_API AMyPlayerController : public APlayerController
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyPlayerController.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2521,10 +2792,10 @@ class ETA_API AMyPlayerController : public APlayerController
 
 ## ゲームモードの作成
 ゲームモードはコンストラクタでデフォルトのプレイヤーコントローラークラス、プレイヤーステートクラス、ポーンクラスに作成したものを設定します。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyGameMode.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2549,10 +2820,10 @@ public:
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyGameMode.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2575,10 +2846,10 @@ AMyGameMode::AMyGameMode()
 
 # ゲームインスタンスの作成
 ゲームインスタンスは特別なことはしません。GameInstanceクラスを派生させてプロジェクト用のゲームインスタンスを作成します。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyGameInstance.h
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2601,10 +2872,10 @@ class ETA_API UMyGameInstance : public UGameInstance
 ```
 </div>
 <br>
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyGameInstance.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2741,10 +3012,10 @@ Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
 ### スケーラブルフロートによる変更
 プライマリアトリビュートの初期値設定などに適している最もシンプルなものです。
 モディファイアに、アトリビュート、演算方法、値を指定して、エフェクトのモディファイア配列に追加します。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   PlayerPrimaryAttributesEffect.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
@@ -2769,10 +3040,10 @@ UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
 <br>
 <br>
 
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyPlayerCharacter.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
@@ -2789,10 +3060,10 @@ void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 ### スケーラブルフロートとカーブテーブルによる変更
 設定した値を時間としてカーブテーブルから値を引いたものを適用するケースです。  
 RPGなどでレベルごとに最大HPが上がっていく場合、レベルと最大HPの変化をカーブテーブルで表現しておけば、直値にレベルを指定することにより、そのレベルでの最大HPをアトリビュートに設定することができます。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   PlayerPrimaryAttributesEffect.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
@@ -2863,10 +3134,10 @@ Armor = (Resilience + 2) * 0.25 + 6
 #### アトリビュートの有効期間
 セカンダリーアトリビュートは永続的にプライマリーアトリビュートから計算されるのでDurationPolicyはInfiniteにします。
 
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MySecondaryAttributesEffect.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 UMySecondaryGameplayEffect::UMySecondaryGameplayEffect()
@@ -2905,10 +3176,10 @@ UMySecondaryGameplayEffect::UMySecondaryGameplayEffect()
 <br>
 
 プライマリアトリビュートと同様に、実際に使用する際は、AMyCharacter::ApplyEffectToSelfで直接エフェクトを適用するか、AMyCharacter::SetupDefaultAbilitiesAndEffectsでデフォルトで適用するアトリビュートに追加しておき、初期化時に適用してもらいます。
-<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+<div style="background-color: #333;">
   MyPlayerCharacter.cpp
 </div>
-<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+<div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
 void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
