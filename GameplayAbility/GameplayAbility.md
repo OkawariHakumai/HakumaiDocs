@@ -88,6 +88,7 @@
 			- [使用するアトリビュートの値](#使用するアトリビュートの値)
 			- [アトリビュートの有効期間](#アトリビュートの有効期間)
 		- [呼び出し元の設定による変更](#呼び出し元の設定による変更)
+			- [ソースコード](#ソースコード-7)
 		- [MMC(Modiier Magnitude Calculations)による変更](#mmcmodiier-magnitude-calculationsによる変更)
 		- [ExecutionCalculationによる変更](#executioncalculationによる変更)
 		- [モディファイアの計算順序](#モディファイアの計算順序)
@@ -2865,7 +2866,7 @@ UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
 
 
 ### アトリビュートによる変更
-他のアトリビュートを使って計算を行い対象となるアトリビュート値を決定する方法です。  
+他のアトリビュートを使って計算を行い対象となるアトリビュート値を設定する方法です。  
 単一の値から計算することしかできない点に注意が必要です。  
 一つのプライマリアトリビュートをベースにして計算されるセカンダリアトリビュートなどで使われます。
 #### 計算の順序
@@ -2961,12 +2962,89 @@ void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 <br>
 
 ### 呼び出し元の設定による変更
-マグニチュードを呼び出し元で計算して指定する方式です。  
-ゲームプレイエフェクトスペックハンドルを作成した後、UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude関数で、スペックハンドルにゲームプレイタグとfloat値のペアを書き込みます。  
-ゲームプレイエフェクトではモディファイアを追加し、計算タイプを「Set by Caller」に設定して、データタグにスペックハンドルに書き込んだゲームプレイタグを設定します。  
-これによりマグニチュードがスペックハンドルに書き込んだゲームプレイタグに対応するfloat値になります。  
-ScalableFloatやアトリビュートベースのような決まった計算ではなく、C++でゲームプレイエフェクト生成時に自由にマグニチュード計算したい場合に便利です。  
-TODO
+ゲームプレイエフェクト適用時にコードでマグニチュードを指定してアトリビュートを変更する方法です。  
+ゲームプレイエフェクトを作成し、モディファイアを追加して以下を設定します。
+- Attributeフィールドに「どのアトリビュートセットのどのプロパティを変更するか」
+- マグニチュードをSetByCallerして、このモディファイアのゲームプレイタグ
+
+アトリビュートを適用する際は、ゲームプレイエフェクトのスペックハンドルを作成した後にUAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitudeでスペックハンドルにゲームプレイタグとfloat値のペアを書き込みます。  
+これでエフェクトを適用するとスペックハンドルに書き込んだゲームプレイタグを持つモディファイアが、アトリビュートにfloat値を書き込みます。  
+スペックハンドルには複数のペアを書き込めるので、同時に複数アトリビュートの変更も可能です。  
+ScalableFloatやアトリビュートベースのような決まった計算ではなく、セーブデータやアビリティ実行時の動的値（ダメージ、属性値、スケールなど）をエフェクトに渡すときに使用します。  
+
+#### ソースコード
+<div style="background-color: #333;">
+  MyPlayerPrimaryAttributesEffectSetByCaller.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto;">
+
+```cpp
+UMyPlayerPrimaryAttributesEffectSetByCaller::UMyPlayerPrimaryAttributesEffectSetByCaller()
+{
+	// 各プライマリー属性の Modifier を SetByCaller タグで登録する
+	AddSetByCallerModifier(UMyAttributeSet::GetStrengthAttribute(), FMyGameplayTags::Get().Attributes_Primary_Strength);
+	AddSetByCallerModifier(UMyAttributeSet::GetIntelligenceAttribute(), FMyGameplayTags::Get().Attributes_Primary_Intelligence);
+	AddSetByCallerModifier(UMyAttributeSet::GetResilienceAttribute(), FMyGameplayTags::Get().Attributes_Primary_Resilience);
+	AddSetByCallerModifier(UMyAttributeSet::GetVigorAttribute(), FMyGameplayTags::Get().Attributes_Primary_Vigor);
+}
+
+void UMyPlayerPrimaryAttributesEffectSetByCaller::AddSetByCallerModifier(FGameplayAttribute Attribute, FGameplayTag Tag)
+{
+	FGameplayModifierInfo NewMod;
+	NewMod.Attribute = Attribute;
+	NewMod.ModifierOp = EGameplayModOp::Override;
+
+	// SetByCaller を使用するために FSetByCallerFloat を作成してから FGameplayEffectModifierMagnitude を構築する
+	FSetByCallerFloat ByCaller;
+	ByCaller.DataTag = Tag;
+	NewMod.ModifierMagnitude = FGameplayEffectModifierMagnitude(ByCaller);
+
+	Modifiers.Add(NewMod);
+}
+```
+</div>
+<br>
+<div style="background-color: #333;">
+  MyAbilitySystemLibrary.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto;">
+
+```cpp
+void UMyAbilitySystemLibrary::InitializeAttributesFromSaveData(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, TSubclassOf<UGameplayEffect> PrimaryAttributesEffectSetByCaller, TSubclassOf<UGameplayEffect> SecondaryAttributesEffect, TSubclassOf<UGameplayEffect> VitalAttributesEffect, UMyCharacterSaveGame* SaveGame)
+{
+	const FMyGameplayTags& GameplayTags = FMyGameplayTags::Get();
+
+	const AActor* SourceAvatarActor = ASC->GetAvatarActor();
+
+	// セーブデータをアトリビュートに反映するためのエフェクト作成
+	FGameplayEffectContextHandle EffectContexthandle = ASC->MakeEffectContext();
+	EffectContexthandle.AddSourceObject(SourceAvatarActor);
+	const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(PrimaryAttributesEffectSetByCaller, 1.f, EffectContexthandle);
+	// セーブデータから取得したアトリビュート値をセット
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Strength, SaveGame->Strength);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Intelligence, SaveGame->Intelligence);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Resilience, SaveGame->Resilience);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Vigor, SaveGame->Vigor);
+	// エフェクトを適用
+	ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+
+	// セカンダリアトリビュートを適用するためのエフェクト作成
+	FGameplayEffectContextHandle SecondaryAttributesContextHandle = ASC->MakeEffectContext();
+	SecondaryAttributesContextHandle.AddSourceObject(SourceAvatarActor);
+	const FGameplayEffectSpecHandle SecondaryAttributesSpecHandle = ASC->MakeOutgoingSpec(SecondaryAttributesEffect, 1.f, SecondaryAttributesContextHandle);
+	// エフェクトを適用
+	ASC->ApplyGameplayEffectSpecToSelf(*SecondaryAttributesSpecHandle.Data.Get());
+
+	// バイタルアトリビュートを適用するためのエフェクト作成
+	FGameplayEffectContextHandle VitalAttributesContextHandle = ASC->MakeEffectContext();
+	VitalAttributesContextHandle.AddSourceObject(SourceAvatarActor);
+	const FGameplayEffectSpecHandle VitalAttributesSpecHandle = ASC->MakeOutgoingSpec(VitalAttributesEffect, 1.f, VitalAttributesContextHandle);
+	// エフェクトを適用
+	ASC->ApplyGameplayEffectSpecToSelf(*VitalAttributesSpecHandle.Data.Get());
+}
+```
+</div>
+<br>
 
 
 ### MMC(Modiier Magnitude Calculations)による変更
