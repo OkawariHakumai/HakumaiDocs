@@ -90,6 +90,10 @@
 		- [呼び出し元の設定による変更](#呼び出し元の設定による変更)
 			- [ソースコード](#ソースコード-7)
 		- [MMC(Modiier Magnitude Calculations)による変更](#mmcmodiier-magnitude-calculationsによる変更)
+			- [ソースコード](#ソースコード-8)
+			- [キャプチャの設定](#キャプチャの設定)
+			- [アトリビュートの取得](#アトリビュートの取得)
+			- [エフェクトレベルの取得](#エフェクトレベルの取得)
 		- [ExecutionCalculationによる変更](#executioncalculationによる変更)
 		- [モディファイアの計算順序](#モディファイアの計算順序)
 		- [モディファイアの係数](#モディファイアの係数)
@@ -3048,7 +3052,176 @@ void UMyAbilitySystemLibrary::InitializeAttributesFromSaveData(const UObject* Wo
 
 
 ### MMC(Modiier Magnitude Calculations)による変更
-TODO
+MMCはゲームプレイエフェクトのモディファイアで適用されるマグニチュードを動的に計算する仕組みです。  
+UGameplayModMagnitudeCalculationクラスを継承した計算クラスを作成し、計算を実行する関数(CalculateBaseMagnitude)をオーバーライドすることで、ソース/ターゲットのアトリビュート、タグ、スタック数、効果レベル、乱数、カーブテーブルなどを使ってマグニチュードを計算できるようになります。  
+モディファイア側の設定では、マグニチュードを「Custom」にして、作成した計算クラスを割り当てます。  
+下記の例ではMaxHealthやMaxManaなどはMMCで計算しています。
+
+#### ソースコード
+<div style="background-color: #333;">
+  MyMaxHealthModMagCalc.h
+</div>
+<div style="max-height: 300px; overflow-y: auto;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameplayModMagnitudeCalculation.h"
+#include "MyMaxHealthModMagCalc.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ETA_API UMyMaxHealthModMagCalc : public UGameplayModMagnitudeCalculation
+{
+	GENERATED_BODY()
+	
+public:
+	// コンストラクタ
+	UMyMaxHealthModMagCalc();
+
+	// マグニチュード計算関数のオーバーライド
+	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
+
+private:
+	// マグニチュード計算で使うアトリビュートのキャプチャー定義
+	FGameplayEffectAttributeCaptureDefinition LevelDef;
+	FGameplayEffectAttributeCaptureDefinition VigorDef;
+};
+```
+</div>
+<br>
+<div style="background-color: #333;">
+  MyMaxHealthModMagCalc.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto;">
+
+```cpp
+// Copyright MyGameCompany. All Rights Reserved.
+
+
+#include "Characters/Base/AbilitySystem/Effects/ModMagCalc/MyMaxHealthModMagCalc.h"
+#include "Characters/Base/AbilitySystem/MyAttributeSet.h"
+
+UMyMaxHealthModMagCalc::UMyMaxHealthModMagCalc()
+{
+	// Levelをキャプチャーするための設定
+	// キャプチャーするアトリビュートと対象を指定してRelevantAttributesToCaptureに追加しておく
+	// これにより、アトリビュートの依存関係が設定され依存元に変化があったときに再計算が行われるようになる
+	LevelDef.AttributeToCapture = UMyAttributeSet::GetLevelAttribute();
+	LevelDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Target;
+	LevelDef.bSnapshot = false;
+
+	RelevantAttributesToCapture.Add(LevelDef);
+
+
+	// Vigorをキャプチャーするための設定
+	// キャプチャーするアトリビュートと対象を指定してRelevantAttributesToCaptureに追加しておく
+	// これにより、アトリビュートの依存関係が設定され依存元に変化があったときに再計算が行われるようになる
+	VigorDef.AttributeToCapture = UMyAttributeSet::GetVigorAttribute();
+	VigorDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Target;
+	VigorDef.bSnapshot = false;
+
+	RelevantAttributesToCapture.Add(VigorDef);
+}
+
+float UMyMaxHealthModMagCalc::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
+{
+	// キャプチャーしたアトリビュートを取得するためのEvaluationParametersを生成
+	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
+	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
+
+	FAggregatorEvaluateParameters EvaluationParameters;
+	EvaluationParameters.SourceTags = SourceTags;
+	EvaluationParameters.TargetTags = TargetTags;
+
+	// Levelのキャプチャー設定を使ってキャプチャー実行
+	float Level = 0.f;
+	GetCapturedAttributeMagnitude(LevelDef, Spec, EvaluationParameters, Level);
+	Level = FMath::Max<float>(Level, 0.f);
+
+	// Vigorのキャプチャー設定を使ってキャプチャー実行
+	float Vigor = 0.f;
+	GetCapturedAttributeMagnitude(VigorDef, Spec, EvaluationParameters, Vigor);
+	Vigor = FMath::Max<float>(Vigor, 0.f);
+
+	/*
+	*	Contextからは以下の情報を取得可能
+	* 
+	*	Spec.GetContext().GetInstigator() — 効果を発生させたインスティゲーター Actor
+	* 	Spec.GetContext().GetEffectCauser() — 物理的な発生源（武器など）
+	* 	Spec.GetContext().GetActors() — コンテキストに保存された Actor リスト（ターゲット群）
+	* 	Spec.GetContext().GetHitResult() — ヒット情報があればそこから Actor を取得可能
+	* 	Spec.GetContext().GetSourceObject() — ソースオブジェクト（必要なら）
+	* 	さらにタグは GetTargetActorTags(Spec) / GetTargetSpecTags(Spec)、キャプチャ済み属性は GetCapturedAttributeMagnitude(...) 等で参照可能
+	*/
+
+	return 80.f + 2.5f * Vigor + 10.f * Level;
+}
+```
+</div>
+<br>
+
+TODO:エフェクトのソースコード
+<div style="background-color: #333;">
+  ***.h
+</div>
+<div style="max-height: 300px; overflow-y: auto;">
+
+```cpp
+```
+</div>
+
+<br>
+<div style="background-color: #333;">
+  ***.cpp
+</div>
+<div style="max-height: 300px; overflow-y: auto;">
+
+```cpp
+```
+</div>
+<br>
+
+#### キャプチャの設定
+計算に使うアトリビュートのキャプチャをヘッダで定義して、コンストラクタで初期化します。  
+キャプチャするアトリビュートと対象(ソース/ターゲット)を設定します。
+```cpp
+// Levelをキャプチャーするための設定
+// キャプチャーするアトリビュートと対象を指定してRelevantAttributesToCaptureに追加しておく
+// これにより、アトリビュートの依存関係が設定され依存元に変化があったときに再計算が行われるようになる
+LevelDef.AttributeToCapture = UMyAttributeSet::GetLevelAttribute();
+LevelDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Target;
+LevelDef.bSnapshot = false;
+```
+
+#### アトリビュートの取得
+キャプチャしたアトリビュートの値はGetCapturedAttributeMagnitude関数で取得できます。  
+アトリビュートを取得するためには、スペックからソースとターゲットのキャプチャータグを取得してアトリビュートキャプチャー用のパラメータ(FAggregatorEvaluateParameters)を生成する必要があります。
+```cpp
+// キャプチャーしたアトリビュートを取得するためのEvaluationParametersを生成
+const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
+const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
+
+FAggregatorEvaluateParameters EvaluationParameters;
+EvaluationParameters.SourceTags = SourceTags;
+EvaluationParameters.TargetTags = TargetTags;
+
+float Vigor = 0.f;
+GetCapturedAttributeMagnitude(VigorDef, Spec, EvaluationParameters, Vigor);
+Vigor = FMath::Max<float>(Vigor, 0.f);
+```
+上記はアトリビュートのマグニチュード取得ですが、SetByCallerで設定されたマグニチュードはGetSetByCallerMagnitudeByTagで取得可能です。
+
+#### エフェクトレベルの取得
+計算にエフェクトのレベルが必要な場合はスペックから取得できます。
+```cpp
+float EffectLevel = Spec.GetLevel();
+```
 
 ### ExecutionCalculationによる変更
 TODO
