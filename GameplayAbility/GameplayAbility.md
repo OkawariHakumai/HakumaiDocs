@@ -3166,23 +3166,43 @@ float UMyMaxHealthModMagCalc::CalculateBaseMagnitude_Implementation(const FGamep
 </div>
 <br>
 
-TODO:エフェクトのソースコード
-<div style="background-color: #333;">
-  ***.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
-
-```cpp
-```
-</div>
-
 <br>
 <div style="background-color: #333;">
-  ***.cpp
+  MySecondaryAttributesEffect.cpp
 </div>
 <div style="max-height: 300px; overflow-y: auto;">
 
 ```cpp
+UMySecondaryAttributesEffect::UMySecondaryAttributesEffect()
+{
+	// ...
+	// カスタムマグニチュード計算を使ったモディファイアの追加
+	AddModMagCalcModifier(UMyAttributeSet::GetMaxHealthAttribute(), UMyMaxHealthModMagCalc::StaticClass());
+	AddModMagCalcModifier(UMyAttributeSet::GetMaxManaAttribute(), UMyMaxManaModMagCalc::StaticClass());
+	// ...
+}
+
+void UMySecondaryAttributesEffect::AddModMagCalcModifier(FGameplayAttribute Attribute, TSubclassOf<UGameplayModMagnitudeCalculation> CalculationClass)
+{
+	// CalculationClass が無効なら何もしない
+	if (!*CalculationClass)
+	{
+		return;
+	}
+
+	FGameplayModifierInfo Mod;
+	Mod.Attribute = Attribute;
+	// セカンダリー計算で上書きする用途を想定して Override にしています
+	Mod.ModifierOp = EGameplayModOp::Override;
+
+	// FCustomCalculationBasedFloat に計算クラスを設定してから FGameplayEffectModifierMagnitude を作る
+	FCustomCalculationBasedFloat CustomCalc;
+	CustomCalc.CalculationClassMagnitude = CalculationClass.Get();
+
+	Mod.ModifierMagnitude = FGameplayEffectModifierMagnitude(CustomCalc);
+	Modifiers.Add(Mod);
+}
+
 ```
 </div>
 <br>
