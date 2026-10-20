@@ -3238,7 +3238,7 @@ Vigor = FMath::Max<float>(Vigor, 0.f);
 上記はアトリビュートのマグニチュード取得ですが、SetByCallerで設定されたマグニチュードはGetSetByCallerMagnitudeByTagで取得可能です。
 
 #### エフェクトレベルの取得
-計算にエフェクトのレベルが必要な場合はスペックから取得できます。
+計算にエフェクトのレベルが必要な場合は、CalculateBaseMagnitude_Implementation関数の引数であるSpecから取得できます。
 ```cpp
 float EffectLevel = Spec.GetLevel();
 ```

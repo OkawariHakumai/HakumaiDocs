@@ -198,6 +198,81 @@ dotnet_naming_style.パスカル_ケース.capitalization = pascal_case
 
 </div>
 
+## VisualStudioへのClangFormatの適用
+UnrealEngineで使われるC++用の標準的なClangFormatを設定します。
+Visual StudioでUnreal EngineのC++にClangFormatを設定するには、プロジェクトのルートディレクトリに専用の .clang-format ファイルを配置し、Visual Studio側でClangFormatを有効化します。
+### .clang-format ファイルの作成・配置
+Unreal Engine のコーディング規約（マクロの扱いやインデントなど）に対応した設定ファイルを、プロジェクトのルートディレクトリ（.sln と同じ階層）に配置します。
+以下のマクロを認識させるための設定（StatementMacros）が含まれた .clang-format をプロジェクトのルードディレクトリに保存してください。
+<div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
+  .clang-format
+</div>
+<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background-off: #f9f9f9;">
+
+```
+StatementMacros: ['UPROPERTY', 'UFUNCTION', 'UCLASS', 'USTRUCT', 'UENUM', 'UINTERFACE', 'GENERATED_BODY']
+Language: Cpp
+BasedOnStyle: LLVM
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlines: Left
+AlignOperands: DontAlign
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: Empty
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: All
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterObjCDeclaration: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: false
+  BeforeWhile: true
+  IndentBraces: false
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BreakInheritanceList: AfterColon
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeComma
+BreakStringLiterals: false
+ColumnLimit: 0
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+Cpp11BracedListStyle: false
+EmptyLineBeforeAccessModifier: LogicalBlock
+IndentCaseBlocks: false
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+IndentWidth: 4
+NamespaceIndentation: All
+PointerAlignment: Left
+SortIncludes: false
+SpaceBeforeCaseColon: false
+TabWidth: 4
+UseTab: Always
+```
+</div>
+
+### Visual Studio での有効化
+- メニューの [ツール]（Tools） > [オプション]（Options） を開きます。
+- [テキスト エディター] > [C/C++] > [書式設定]（Formatting） に移動します。
+- 「ClangFormat を有効にする（Enable ClangFormat）」にチェックを入れます（Visual Studio 2017以降はデフォルトで有効です）。
+
+### コードのフォーマット実行
+- エディター上で整形したいファイルを開き、以下のショートカットキーを押します：
+  - Ctrl + K を押したあと、Ctrl + D（ドキュメント全体）
+  - または Ctrl + K を押したあと、Ctrl + F（選択範囲）
+
 ## cpp,hファイルを同一フォルダ内でインクルード
 Source/{ProjectName}/{ProjectName}.Build.csでインクルードパスにModuleDirectoryを追加
 <div style="background-color: #333; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 13px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #444; font-weight: bold;">
