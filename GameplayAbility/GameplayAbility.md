@@ -1,6 +1,7 @@
 # ゲームプレイアビリティシステム
 
 # 目次
+
 - [ゲームプレイアビリティシステム](#ゲームプレイアビリティシステム)
 - [目次](#目次)
 - [アビリティシステムの概要](#アビリティシステムの概要)
@@ -103,43 +104,58 @@
 	- [ゲームプレイエフェクト変更の検知](#ゲームプレイエフェクト変更の検知)
 	- [ゲームプレイエフェクトのコンポーネント](#ゲームプレイエフェクトのコンポーネント)
 - [ゲームプレイイベント](#ゲームプレイイベント)
+- [TODO](#todo)
 
 # アビリティシステムの概要
-アビリティシステムは以下のパーツから構成されています。  
+
+アビリティシステムは以下のパーツから構成されています。
 これらが連携することによりアビリティシステムの機能を実現しています。
+
 ## ゲームプレイタグ
-ゲームプレイアビリティシステム全般にわたって使用されるタグです。  
-アビリティシステムコンポーネント、ゲームプレイエフェクト、ゲームプレイアトリビュートなどに付与することができ、ゲームプレイアビリティの起動、キャラクターの状態管理、イベント発生時の通知パラメータなど幅広く利用されます。  
+
+ゲームプレイアビリティシステム全般にわたって使用されるタグです。
+アビリティシステムコンポーネント、ゲームプレイエフェクト、ゲームプレイアトリビュートなどに付与することができ、ゲームプレイアビリティの起動、キャラクターの状態管理、イベント発生時の通知パラメータなど幅広く利用されます。
+
 ## アビリティシステムコンポーネント
+
 アビリティシステムの基本となるコンポーネントです。対象のアクターにアタッチしてアビリティシステム全般の制御を行います。
+
 ## アトリビュートセット
+
 キャラクターが保持するSTR,INT,DEX,HP,MPなどのパラメータセットです。アビリティシステムコンポーネントと同様に対象のアクターにアタッチして保持、管理します。
+
 ## ゲームプレイアビリティ
-ジャンプ、攻撃、防御などのアクションを記述するクラスです。アクターはアビリティシステムコンポーネントにアビリティを登録することでアクションが実行できるようになります。  
+
+ジャンプ、攻撃、防御などのアクションを記述するクラスです。アクターはアビリティシステムコンポーネントにアビリティを登録することでアクションが実行できるようになります。
 アビリティは１つのクラスとして独立したコードで書けるのでアクター本体の実装に依存せずに機能を実装できます。また、アタッチ、デタッチするだけでアクターへの能力付与、削除が簡単にできるのでメンテナンス性に優れます。
+
 ## アビリティタスク
+
 ゲームプレイアビリティで使われるワーカースレッドのようなものです。ゲームプレイアビリティはアビリティ開始、終了、中断などタイミングでコールバックを受けるので、そこに必要なロジックを記述できますが、呪文や溜め攻撃のような開始～待機～発動といった時間経過を伴うものはゲームプレイアビリティy内でアビリティタスクを生成して処理を行います。
+
 ## ゲームプレイエフェクト
+
 アトリビュートの値を変更させるものです。アトリビュートの値は通常、直接書き換えるものではなく、アビリティシステムコンポーネントにゲームプレイエフェクトを適用することにより変化させます。例えば敵からダメージを受けてHPを減少させる場合、HPを減らすゲームプレイエフェクトを作成してアビリティシステムコンポーネントに適用させます。また、ゲームプレイエフェクトは持続時間なども設定できるので一定期間アトリビュート値を変化させるバフ、デバフなどにも使用できます。
+
 ## ゲームプレイキュー
+
 ゲームプレイエフェクトを適用したことにより発生するパーティクルやSEなどのエフェクトを定義します。ゲームプレイキューはレプリケートに対応しているので、対象のアクターにゲームプレイエフェクトを適用すると各クライアントでも自動的にエフェクトを表示してくれます。
 
 # アビリティシステムの環境構築
+
 アビリティシステムを使用するためには以下の環境設定が必要になります。
 
 ## プラグインの有効化
-GameplayAbilityを使うためにはプラグインを以下の手順で有効化する必要があります。  
+
+GameplayAbilityを使うためにはプラグインを以下の手順で有効化する必要があります。
 
 ## Gameplay Abilitiesプラグインを有効化
-エディタのプラグインで、Gameplay Abilitiesを有効化にします。  
+
+エディタのプラグインで、Gameplay Abilitiesを有効化にします。
 エディタを再起動させます
 
-## Build.csにモジュールを追加  
-<div style="background-color: #333;">
-  MyProject.Build.cs
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
-
+## Build.csにモジュールを追加
+`MyProject.Build.cs`
 ```csharp
 // Copyright Epic Games, Inc. All Rights Reserved.
 
@@ -150,7 +166,7 @@ public class Eta : ModuleRules
 	public Eta(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
+
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "ImGui", "GameplayTags", "GameplayTasks" });
@@ -168,35 +184,37 @@ public class Eta : ModuleRules
 	}
 }
 ```
-</div>
 <br>
 
 # アビリティシステムのクラス構成
-アトリビュートを持ちアクションを行うのはアクターなので、アクターにアビリティシステムコンポーネントとアトリビュートセットを持たせるのが自然な形なのですが、その実装だとプレイヤーが操作しているキャラクターが死んでリスポーンする場合などに問題になります。  
+
+アトリビュートを持ちアクションを行うのはアクターなので、アクターにアビリティシステムコンポーネントとアトリビュートセットを持たせるのが自然な形なのですが、その実装だとプレイヤーが操作しているキャラクターが死んでリスポーンする場合などに問題になります。
 そこでライフタイムが一代限りの敵などのキャラクターについてはアビリティシステムコンポーネントとアトリビュートを直接持たせ、プレイヤーキャラクターについてはプレイヤーステートでアビリティシステムコンポーネントとアトリビュートを保持し、キャラクター側にはそのポインタを持たせる設計にします。
+
 ## プレイヤー
+
 - プレイヤーステート
   - アビリティシステムコンポーネント
   - アトリビュートセット
 - プレイヤーキャラクター
   - アビリティシステムコンポーネントのポインタ(プレイヤーステート保持)
   - アトリビュートセットのポインタ(プレイヤーステート保持)
+
 ## エネミー
+
 - キャラクター
   - アビリティシステムコンポーネント
   - アトリビュートセット
-<br>
+    <br>
 
 # ゲームプレイタグ(ダイナミックタグ)の作成
-まずはゲームプレイアビリティの各所で使うことになるゲームプレイタグを作成します。  
-ゲームプレイタグはプロジェクト設定のiniファイルで静的に作成できますが、ここではC++で扱いやすくするためにソースコード上で動的に定義します。  
-ファイルはSource/{ProjectName}/直下にヘッダとcppフィルを用意して定義します。
-## ソースコード
-<div style="background-color: #333;">
-  MyGameplayTags.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+まずはゲームプレイアビリティの各所で使うことになるゲームプレイタグを作成します。
+ゲームプレイタグはプロジェクト設定のiniファイルで静的に作成できますが、ここではC++で扱いやすくするためにソースコード上で動的に定義します。
+ファイルはSource/{ProjectName}/直下にヘッダとcppフィルを用意して定義します。
+
+## ソースコード
+`MyGameplayTags.h`
 ```cpp
 // Copyright HakumaiGames
 
@@ -288,7 +306,7 @@ public:
 	FGameplayTag Abilities_Passive_HaloOfProtection;
 	FGameplayTag Abilities_Passive_LifeSiphon;
 	FGameplayTag Abilities_Passive_ManaSiphon;
-	
+
 	// プレイヤータグ(プレイヤーの状態管理に使用)
 	FGameplayTag Player_Block_InputPressed;
 	FGameplayTag Player_Block_InputHeld;
@@ -336,13 +354,9 @@ private:
 	static FMyGameplayTags GameplayTags;
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyGameplayTags.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyGameplayTags.cpp`
 ```cpp
 // Copyright HakumaiGames
 
@@ -700,7 +714,7 @@ void FMyGameplayTags::InitializeNativeGameplayTags()
 		FString("Type Passive")
 	);
 
-	
+
 	/*
 	 * Cooldown
 	 */
@@ -793,18 +807,14 @@ void FMyGameplayTags::InitializeNativeGameplayTags()
 	);
 }
 ```
-</div>
-<br>
 
 # アビリティの作成
+
 すべてのアビリティの基礎となるプロジェクト用のアビリティクラスを作成します。GameplayAbilityを派生させます。
 
 ## ソースコード
-<div style="background-color: #333;">
-  MyAbility.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyAbility.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -821,20 +831,16 @@ UCLASS()
 class ETA_API UMyAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
-	
+
 public:
 	// アビリティ付与時に設定するダイナミックタグ
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTag DynamicTag;
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyAbility.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyAbility.cpp`
 ```cpp
 // Fill out your copyright notice in the Description page of Project Settings.
 
@@ -842,47 +848,52 @@ public:
 #include "AbilitySystem/Abilities/MyAbility.h"
 
 ```
-</div>
 <br>
 
 # アトリビュートセットの作成
+
 ## アトリビュートセットの実装
+
 アトリビュートセットでは以下の実装を行います。
+
 - ゲームで使用するアトリビュートの定義
-  - プライマリアトリビュート  
-    キャラクターの基本的な能力  
+
+  - プライマリアトリビュート
+    キャラクターの基本的な能力
     Strength,Intelligenceなど
-  - セカンダリアトリビュート  
-    プライマリアトリビュートから計算されるアトリビュート  
+  - セカンダリアトリビュート
+    プライマリアトリビュートから計算されるアトリビュート
     MaxHealth,MaxMana,Armor,ArmorPenetrationなど
-  - バイタルアトリビュート  
-    動的に変化するアトリビュート  
+  - バイタルアトリビュート
+    動的に変化するアトリビュート
     Health,Manaなど
-  - メタアトリビュート  
-    レプリケートしないサーバー上の計算で使われるアトリビュート  
+  - メタアトリビュート
+    レプリケートしないサーバー上の計算で使われるアトリビュート
     IncomingDamage,IncomingXPなど
 
   各プロパティには以下の設定を行います
-  - マクロを使ってアクセッサを用意  
+
+  - マクロを使ってアクセッサを用意
   - プロパティ指定子ReplicatedUsingでレプリケートコールバックを登録
-- GetLifetimeReplicatedPropsのオーバーライド  
+- GetLifetimeReplicatedPropsのオーバーライド
   DOREPLIFETIME_CONDITION_NOTIFYでアトリビュートのレプリケート設定を指定
-- PreAttributeChangeのオーバーライド  
-  ゲームプレイエフェクトの評価(マグニチュード計算、ExecutionCalculation実行)により変更すべきアトリビュートと値が決定されます。その後、各アトリビュートに対して「これから値を変える」段階でこの関数が呼ばれます。  
-  ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です。  
+- PreAttributeChangeのオーバーライド
+  ゲームプレイエフェクトの評価(マグニチュード計算、ExecutionCalculation実行)により変更すべきアトリビュートと値が決定されます。その後、各アトリビュートに対して「これから値を変える」段階でこの関数が呼ばれます。
+  ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です。
   例)HealthとHealthMax、ManaとManaMaxなどのクランプ処理を行う
-- PostAttributeChangedのオーバーライド  
-  ゲームプレイエフェクトの評価により各アトリビュートに対して「値が変わった」段階でこの関数が呼ばれます。  
-  アトリビュート変更後の
+- PostAttributeChangedのオーバーライドゲームプレイエフェクトの評価により各アトリビュートに対して「値が変わった」段階でこの関数が呼ばれます。アトリビュート変更後の
+
   - 最終的なクランプ
   - メタアトリビュートによる計算と結果の反映
-  - アトリビュート変更に付随する追加処理全般  
+  - アトリビュート変更に付随する追加処理全般
     ゲームプレイエフェクトの適用、UIやエフェクトの表示処理
 
   などに使います。
 
 ## ゲームプレイエフェクト適用前の処理
+
 アトリビュートに対してゲームプレイエフェクトが適用された前にPreGameplayEffectExecuteという関数をオーバーライドして処理を挟むことができます。
+
 ```cpp
 bool UMyAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData &Data)
 {
@@ -891,9 +902,11 @@ bool UMyAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallback
 ```
 
 ## ゲームプレイエフェクト適用後の処理
+
 アトリビュートに対してゲームプレイエフェクトが適用された後にという関数をオーバーライドして処理を挟むことができます。
-ここではエフェクトにより変更されたアトリビュートの値に応じてさまざまな処理を行います。  
+ここではエフェクトにより変更されたアトリビュートの値に応じてさまざまな処理を行います。
 最終的な値のクランプ、ダメージを受けたことによるノックバックや死亡、経験上昇によるレベルアップ処理などです。
+
 ```cpp
 void UMyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
@@ -914,9 +927,11 @@ void UMyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 ```
 
 ## アトリビュート変更前の処理
-モディファイアによりアトリビュート変更が行われる直前にPreAttributeChangeという関数をオーバーライドして処理を挟むことができます。  
-ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です(HealthとHealthMax、ManaとManaMaxなどのクランプなど)。  
+
+モディファイアによりアトリビュート変更が行われる直前にPreAttributeChangeという関数をオーバーライドして処理を挟むことができます。
+ここではセットしようとしている新しい値に対し補正、クランプをかけることが可能です(HealthとHealthMax、ManaとManaMaxなどのクランプなど)。
 ここでのクランプは「不正な値を遮断」する意味があります。
+
 ```cpp
 void UMyAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
@@ -933,11 +948,12 @@ void UMyAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 }
 ```
 
-
 ## アトリビュート変更後の処理
-モディファイアによりアトリビュート変更が行われた後にPostAttributeChangeという関数をオーバーライドして処理を挟むことができます。  
-ここでは計算後に最終的にセットしようとしている新しい値を見て、それに対して何か別の値の変更を行いたい場合に便利です。  
-例えばレベルアップ時にヘルス、マナ全回復フラグをセットしておき、最大ヘルス・最大マナの変化と一緒に全回復させたい場合などに、ここに処理を挟みます。  
+
+モディファイアによりアトリビュート変更が行われた後にPostAttributeChangeという関数をオーバーライドして処理を挟むことができます。
+ここでは計算後に最終的にセットしようとしている新しい値を見て、それに対して何か別の値の変更を行いたい場合に便利です。
+例えばレベルアップ時にヘルス、マナ全回復フラグをセットしておき、最大ヘルス・最大マナの変化と一緒に全回復させたい場合などに、ここに処理を挟みます。
+
 ```cpp
 void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
@@ -959,11 +975,8 @@ void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 ```
 
 ## アトリビュートセットのソースコード
-<div style="background-color: #333;">
-MyAttributeSet.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyAttributeSet.h`
 ```cpp
 // Fill out your copyright notice in the Description page of Project Settings.
 
@@ -988,7 +1001,7 @@ UCLASS()
 class ETA_API UMyAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
-	
+
 public:
 	/*
 	 * プライマリーアトリビュート
@@ -1188,14 +1201,9 @@ private:
 	bool bTopOffMana = false;
 };
 ```
-</div>
 <br>
 
-<div style="background-color: #333;">
-  MyAttributeSet.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
-
+`MyAttributeSet.cpp`
 ```cpp
 //  Copyright MyGameCompany. All Rights Reserved.
 
@@ -1379,15 +1387,17 @@ void UMyAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 }
 ```
-</div>
 <br>
 
 # アビリティシステムコンポーネントの作成
-アビリティシステムの基幹となるアビリティシステムコンポーネントを作成します。  
+
+アビリティシステムの基幹となるアビリティシステムコンポーネントを作成します。
 AbilitySystemComponentを派生させてプロジェクト用のアビリティシステムコンポーネントを作成し、以下の機能を持たせます。
 
 ## アビリティシステムのレプリケーション
+
 アビリティシステムはネットワーク対応で３つのレプリケーションモードがあります。このモードによりゲームプレイエフェクトのレプリケーションのされ方が変わります。
+
 - 完全 (Full)
   - アクティブなGEのすべての詳細（持続時間、スタック数、タグのカウントなど）をすべてのクライアントにレプリケートします。
   - プレイヤーステータスを他者から完全に把握する必要がある場合に向いていますが、ネットワーク帯域の負荷が高くなります。
@@ -1398,7 +1408,7 @@ AbilitySystemComponentを派生させてプロジェクト用のアビリティ�
   - 所有権に関わらず、付与されているタグやゲームプレイキュー（Gameplay Cue）の情報のみを最小限レプリケートします。
   - 内部的なダメージ計算や詳細なスタック数を他のクライアントが知る必要のない、数多くスポーンするAIや敵キャラクター（Enemy）に最適です。
 
-上記を鑑みて今回のソースではアビリティシステムコンポーネントについてはプレイヤーキャラクターのMixed、エネミーキャラクターについてはMinimalを設定します。  
+上記を鑑みて今回のソースではアビリティシステムコンポーネントについてはプレイヤーキャラクターのMixed、エネミーキャラクターについてはMinimalを設定します。
 
 なお、アビリティシステムコンポーネントのレプリケーションモードに混合(Mixed)を使う場合、以下の注意点があります。
 
@@ -1409,38 +1419,54 @@ AbilitySystemComponentを派生させてプロジェクト用のアビリティ�
 今回のソースでは、プレイヤーキャラクターが混合 (Mixed)を使用するため、InitAbilityActorInfoで指定するオーナーアクターはプレイヤーステートになります。
 
 ## アビリティの付与機能
-通常アビリティとパッシブアビリティをアビリティシステムに付与します。  
+
+通常アビリティとパッシブアビリティをアビリティシステムに付与します。
 必要に応じてキャラクタークラスから呼び出されることを想定しています。
+
 ```cpp
 // ASCにアビリティ付与
 void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities, int32 Level = 1);
 // ASCにパッシブアビリティ付与
 void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities, int32 Level = 1);
 ```
+
 ### 通常アビリティとは
+
 通常アビリティは必要に応じて都度アクティベート処理が実行されます。
+
 ### パッシブアビリティとは
+
 パッシブアビリティは、付与と同時にアクティベートが行われるアビリティになります。
+
 ### アビリティスペックとは
-アビリティスペックはコンポーネントにアビリティが付与されたときに内部で生成・保持される「付与済みアビリティのレコード」です。付与されたアビリティに対する一種のハンドルのようなものです。  
+
+アビリティスペックはコンポーネントにアビリティが付与されたときに内部で生成・保持される「付与済みアビリティのレコード」です。付与されたアビリティに対する一種のハンドルのようなものです。
 アビリティのクラス、レベル、入力ID（ホットキー割当て）、一意のハンドルなどを保持していて、このスペックを使ってアビリティを起動/停止したり、参照・削除することができます。
 
 ## アビリティごとの処理
+
 所有している各アビリティごとにコールバックを呼び出します。
+
 ```cpp
 // アビリティごとに処理を行う
 void ForEachAbility(const FForEachAbility& Delegate);
 ```
+
 ## アセットタグからアビリティスペックを取得
-アビリティにはアセットタグを設定することができます。  
-この関数では指定したアセットタグを持つアビリティのスペックを取得します。  
+
+アビリティにはアセットタグを設定することができます。
+この関数では指定したアセットタグを持つアビリティのスペックを取得します。
+
 ```cpp
 // アセットタグからアビリティスペックを取得する
 FGameplayAbilitySpec* GetSpecFromAssetTag(const FGameplayTag& AssetTag);
 ```
+
 ## アビリティスペックからアセットタグを取得
-アビリティスペックから、対象のアビリティのタグを取得することができます。  
+
+アビリティスペックから、対象のアビリティのタグを取得することができます。
 アセットタグとダイナミックタグの2種類のタグを取得する関数があります。
+
 ```cpp
 // AbilitySpecから指定した名前を持つのアセットタグ取得する
 FGameplayTag GetAssetTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, const FName& TagName) const;
@@ -1448,10 +1474,13 @@ FGameplayTag GetAssetTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, 
 // AbilitySpecから指定した名前を持つのアセットタグ取得する
 FGameplayTag GetDynamicTagByNameFromSpec(const FGameplayAbilitySpec& AbilitySpec, const FName& TagName) const;
 ```
+
 ## 汎用イベントをアビリティへ通知
-アビリティシステムはアビリティに対して汎用イベントを送ることができます。  
-アビリティ側ではWaitInputPress / WaitInputRelease / WaitGenericEventなどのイベント待ち受け処理によりイベントの発生を受け取って処理を実行することができます。  
+
+アビリティシステムはアビリティに対して汎用イベントを送ることができます。
+アビリティ側ではWaitInputPress / WaitInputRelease / WaitGenericEventなどのイベント待ち受け処理によりイベントの発生を受け取って処理を実行することができます。
 送り先としてアビリティのアセットタグ、ダイナミックを指定する２関数があります。
+
 ```cpp
 // 汎用レプリケートイベントをアビリティへ通知する
 // 主にWaitInputPress / WaitInputRelease / WaitGenericEvent 等で待機しているアビリティへ入力や汎用イベントを伝える用
@@ -1460,7 +1489,9 @@ void InvokeReplicatedEventByDynamicTag(const FGameplayTag& DynamicTag, EAbilityG
 ```
 
 ## アビリティのアクティベート
+
 付与されたアビリティをアクティベートします。アセットタグによる起動、ダイナミックタグによる起動の2種類があります。
+
 ```cpp
 // アビリティをタグでアクティブ化する
 UFUNCTION(BlueprintCallable, Category = "Abilities")
@@ -1470,9 +1501,11 @@ bool TryActivateAbilityByDynamicTag(const FGameplayTag& DynamicTag, bool bAllowR
 ```
 
 ## アビリティのレベル設定
-アビリティにはレベルが存在します。  
-アビリティシステムがアトリビュートに変化を加えようとしたときに、エフェクトスペックを生成して対象のアビリティシステムに適用するのですが、このエフェクトペックにアビリティのレベルを指定すると、エフェクトの効果量がレベルに応じたものになります。  
+
+アビリティにはレベルが存在します。
+アビリティシステムがアトリビュートに変化を加えようとしたときに、エフェクトスペックを生成して対象のアビリティシステムに適用するのですが、このエフェクトペックにアビリティのレベルを指定すると、エフェクトの効果量がレベルに応じたものになります。
 また、アビリティ側の内部実装で、アビリティスペックのレベルを参照してダメージ、クールダウンタイム、射撃数などの挙動をスケールさせることもできます。
+
 ```cpp
 // アビリティのレベルを更新（クライアントはサーバーに要求する）
 UFUNCTION(BlueprintCallable, Category = "Abilities")
@@ -1481,11 +1514,8 @@ void SetAbilityLevel(TSubclassOf<UGameplayAbility> AbilityClass, int32 NewLevel)
 ```
 
 ## ソースコード
-<div style="background-color: #333;">
-  MyAbilitySystemComponent.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyAbilitySystemComponent.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -1511,7 +1541,7 @@ UCLASS()
 class ETA_API UMyAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
+
 public:
 	// ASCにアビリティ付与
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities, int32 Level = 1);
@@ -1564,13 +1594,9 @@ private:
 	bool bStartupAbilitiesGiven = false;
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyAbilitySystemComponent.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyAbilitySystemComponent.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -1812,29 +1838,31 @@ void UMyAbilitySystemComponent::OnRep_ActivateAbilities()
 	}
 }
 ```
-</div>
 <br>
 
-
 # プレイヤーステートの作成
-プロジェクト用のプレイヤーステータクラスを作成します。  
+
+プロジェクト用のプレイヤーステータクラスを作成します。
 [アビリティシステムのクラス構成](#アビリティシステムのクラス構成)で紹介した通り、プレイヤーステートはプレイヤーキャラクター用のアビリティシステムコンポーネントとアトリビュートを保持し、IAbilitySystemInterfaceを継承します。
+
 ## コンストラクタ
-コンストラクタではアビリティシステムコンポーネントとアトリビュートの生成を行い、ネットワーク対応のためレプリケートを有効にします。プレイヤーステートは比較的頻度高く同期が必要なのでNetUpdateFrequencyを100に指定します。  
+
+コンストラクタではアビリティシステムコンポーネントとアトリビュートの生成を行い、ネットワーク対応のためレプリケートを有効にします。プレイヤーステートは比較的頻度高く同期が必要なのでNetUpdateFrequencyを100に指定します。
 NetUpdateFrequencyはレプリケートする秒間の頻度で、100を指定すると1秒間に100回(0.01秒間隔)で更新を試みる設定になります。
+
 ## レプリケーションの設定
-GetLifetimeReplicatedProps関数でどのプロパティをレプリケートするかの設定を登録します。  
+
+GetLifetimeReplicatedProps関数でどのプロパティをレプリケートするかの設定を登録します。
 レプリケートしたい変数を追加する場合は、ここにDOREPLIFETIMEマクロで変数を登録します。
+
 ## アビリティシステムコンポーネントの取得関数
-IAbilitySystemInterfaceに定義されているGetAbilitySystemComponent関数をオーバーライドします。  
+
+IAbilitySystemInterfaceに定義されているGetAbilitySystemComponent関数をオーバーライドします。
 シンプルに自身が保持しているコンポーン年とを返すだけです。
 
 ## ソースコード
-<div style="background-color: #333;">
-  MyPlayerState.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyPlayerState.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -1856,7 +1884,7 @@ UCLASS()
 class ETA_API AMyPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
-	
+
 public:
 	AMyPlayerState();
 
@@ -1878,13 +1906,9 @@ protected:
 	TObjectPtr<UAttributeSet> AttributeSet;
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyPlayerState.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyPlayerState.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -1922,13 +1946,16 @@ UAbilitySystemComponent* AMyPlayerState::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 ```
-</div>
 <br>
 
 # キャラクターのベース作成
-ベースキャラクターにはキャラクターとしてふるまうために必要な機能を実装します。  
+
+ベースキャラクターにはキャラクターとしてふるまうために必要な機能を実装します。
+
 ## アビリティシステムコンポーネントとアトリビュートセット
+
 アビリティシステムコンポーネントとアトリビュートセットは、キャラクターとしては必須なものですがプレイヤーとエネミーで所有者や初期化タイミングが変わるため、ベース側ではポインタのみ保持する形にします。
+
 ```cpp
 UPROPERTY()
 TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -1936,9 +1963,12 @@ TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 UPROPERTY()
 TObjectPtr<UAttributeSet> AttributeSet;
 ```
+
 ## 初期付与するアビリティとエフェクト
+
 キャラクターが最初から所持しているアビリティとエフェクトクラスの配列をメンバ変数に所持します。
 これらの変数は、キャラクタークラスをBPに派生させて設定してもOKですし、SetupDefaultAbilitiesAndEffectsをオーバーライドして設定しても動くようにしておきます。
+
 ```cpp
 class ETA_API AMyCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -1969,12 +1999,15 @@ void AMyCharacter::SetupDefaultAbilitiesAndEffects()
 	// DefaultEffects.Add(MyGameplayEffect::StaticClass());
 }
 ```
+
 ## エフェクトの適用関数
-エフェクトを自分自身に適用する関数です。  
-以下の3ステップが行われます。
+
+エフェクトを自分自身に適用する関数です。以下の3ステップが行われます。
+
 - アビリティシステムコンポーネントからコンテキストハンドルを作成
 - エフェクトクラス、レベル、コンテキストハンドルからエフェクトスペックハンドルを作成
 - エフェクトスペックハンドルを使って自分自身にエフェクトを適用
+
 ```cpp
 class ETA_API AMyCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -2001,9 +2034,12 @@ void AMyCharacter::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffect
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
 }
 ```
+
 ## アビリティシステムの初期化
-アビリティシステムの初期化関数です。  
-アビリティシステムはアビリティシステムコンポーネント、アトリビュートセット、使用者すべてが揃わないと初期化できないため、ベースクラスではそれらを引数にした関数(InitializeAbilitySystem)のみ用意し、派生クラスから適切なタイミングで呼び出します。  
+
+アビリティシステムの初期化関数です。
+アビリティシステムはアビリティシステムコンポーネント、アトリビュートセット、使用者すべてが揃わないと初期化できないため、ベースクラスではそれらを引数にした関数(InitializeAbilitySystem)のみ用意し、派生クラスから適切なタイミングで呼び出します。
+
 ```cpp
 class ETA_API AMyCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -2075,11 +2111,8 @@ void AMyCharacter::InitializeAbilitySystem(AActor* InOwnerActor, AActor* InAvata
 ```
 
 ## ソースコード
-<div style="background-color: #333;">
-  MyCharacter.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyCharacter.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2156,13 +2189,9 @@ private:
 	TArray<TSubclassOf<UGameplayEffect>> DefaultEffects;
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyCharacter.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyCharacter.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2227,7 +2256,7 @@ void AMyCharacter::InitializeDefaultAbilities()
 
 void AMyCharacter::SetupDefaultAbilitiesAndEffects()
 {
-	
+
 	// DefaultAbilities.Add(MyAbility::StaticClass());
 
 	// DefaultPassiveAbilities.Add(MyPassiveAbility::StaticClass());
@@ -2273,21 +2302,18 @@ void AMyCharacter::InitializeAbilitySystem(AActor* InOwnerActor, AActor* InAvata
 }
 
 ```
-</div>
 <br>
 
 # プレイヤーキャラクターの作成
 
-## アビリティシステムの初期化  
-プレイヤーキャラクターの場合、アビリティシステムコンポーネントとアトリビュートセットのオーナーはプレイヤーステートなので、この２つが揃うのはサーバーではPossessedBy、クライアントではOnRep_PlayerStateが呼ばれた時点となります。そのタイミングでアビリティーシステム初期化関数であるInitializeAbilitySystemを呼びます。  
+## アビリティシステムの初期化
+
+プレイヤーキャラクターの場合、アビリティシステムコンポーネントとアトリビュートセットのオーナーはプレイヤーステートなので、この２つが揃うのはサーバーではPossessedBy、クライアントではOnRep_PlayerStateが呼ばれた時点となります。そのタイミングでアビリティーシステム初期化関数であるInitializeAbilitySystemを呼びます。
 またプレイヤーキャラクターにはカメラが必要なのでスプリングアームとカメラのコンポーネントを追加しておきます。
+
 ## ソースコード
 
-<div style="background-color: #333;">
-  MyPlayerCharacter.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
-
+`MyPlayerCharacter.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2308,7 +2334,7 @@ UCLASS()
 class ETA_API AMyPlayerCharacter : public AMyCharacter
 {
 	GENERATED_BODY()
-	
+
 public:
 	AMyPlayerCharacter();
 	virtual void PossessedBy(AController* NewController) override;
@@ -2327,13 +2353,9 @@ private:
 	TObjectPtr<USpringArmComponent> CameraBoom;
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyPlayerCharacter.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyPlayerCharacter.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2395,18 +2417,15 @@ void AMyPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 }
 
 ```
-</div>
 <br>
 
 # エネミーキャラクターの作成
-エネミーキャラクターの場合、アビリティシステムコンポーネントとアトリビュートセットはコンストラクタ内で自分自身で生成・保持します。アビリティーシステム初期化関数のInitializeAbilitySystemはBeginPlayで呼びます。  
+エネミーキャラクターの場合、アビリティシステムコンポーネントとアトリビュートセットはコンストラクタ内で自分自身で生成・保持します。アビリティーシステム初期化関数のInitializeAbilitySystemはBeginPlayで呼びます。
 PossessedByはAIControllerに所有されたときのBehaviorTreeの初期化をコメントアウトで残してあります。
-## ソースコード
-<div style="background-color: #333;">
-  MyEnemyCharacter.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+## ソースコード
+
+`MyEnemyCharacter.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2452,13 +2471,9 @@ protected:
 #endif
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyEnemyCharacter.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyEnemyCharacter.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2514,16 +2529,12 @@ void AMyEnemyCharacter::BeginPlay()
 	InitializeAbilitySystem(this, this);
 }
 ```
-</div>
 <br>
 
 # プレイヤーコントローラーの作成
 プレイヤーコントローラーは特別なことはしません。プレイヤーコントローラクラスを派生させてプロジェクト用のプレイヤーコントローラーを作成します。
-<div style="background-color: #333;">
-  MyPlayerController.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyPlayerController.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2540,16 +2551,12 @@ UCLASS()
 class ETA_API AMyPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyPlayerController.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyPlayerController.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2557,16 +2564,12 @@ class ETA_API AMyPlayerController : public APlayerController
 #include "Controller/Player/MyPlayerController.h"
 
 ```
-</div>
 <br>
 
 ## ゲームモードの作成
 ゲームモードはコンストラクタでデフォルトのプレイヤーコントローラークラス、プレイヤーステートクラス、ポーンクラスに作成したものを設定します。
-<div style="background-color: #333;">
-  MyGameMode.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyGameMode.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2588,13 +2591,9 @@ public:
 	AMyGameMode();
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyGameMode.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyGameMode.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2611,16 +2610,12 @@ AMyGameMode::AMyGameMode()
 	DefaultPawnClass      = AMyPlayerCharacter::StaticClass();
 }
 ```
-</div>
 <br>
 
 # ゲームインスタンスの作成
 ゲームインスタンスは特別なことはしません。GameInstanceクラスを派生させてプロジェクト用のゲームインスタンスを作成します。
-<div style="background-color: #333;">
-  MyGameInstance.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyGameInstance.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2637,16 +2632,12 @@ UCLASS()
 class ETA_API UMyGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
+
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyGameInstance.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyGameInstance.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2654,139 +2645,164 @@ class ETA_API UMyGameInstance : public UGameInstance
 #include "GameInstance/MyGameInstance.h"
 
 ```
-</div>
 <br>
 
-
 # 起動確認
+
 ## プロジェクト設定
+
 プロジェクト設定でデフォルトのゲームインスタンスとゲームモードを作成したものにしてプレイ開始します。
+
 ## デバッグ表示
+
 コンソールコマンドで
+
 ```sh
 showdebug abilitysystem
 ```
+
 を使うとアビリティシステムをセットアップしたキャラクターのアトリビュート情報が確認できます。
 
 # ゲームプレイエフェクト
-ゲームプレイエフェクトはアトリビュートやゲームプレイタグに対して「何のアトリビュートをどう変化させるか」「何のタグを付与するか」という設定のリストが書かれたデータクラスです。  
-これを対象のアビリティシステムコンポーネントに適用することによりキャラの基本パラメータの設定や、ダメージによるヒットポイントの減産処理を行います。  
+
+ゲームプレイエフェクトはアトリビュートやゲームプレイタグに対して「何のアトリビュートをどう変化させるか」「何のタグを付与するか」という設定のリストが書かれたデータクラスです。
+これを対象のアビリティシステムコンポーネントに適用することによりキャラの基本パラメータの設定や、ダメージによるヒットポイントの減産処理を行います。
 ゲームプレイエフェクトには適用期間があるので無限にしてパラメータのベース値として利用したり、期間を設定してバフのように扱ったり、即時反映にしてHealthのダメージ減算に使ったりと、アビリティシステムのパラメータ計算の中枢を担っています。
 
 ## ゲームプレイエフェクトの特徴
-ゲームプレイエフェクトの特徴を挙げると以下のようなものがあります。
-### データのみ
-コードは含まないデータだけの構造体です。
-### Blueprintベースで作成する
-サブクラス化せずゲームプレイエフェクトをそのまま使用します。  
-Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
-### モディファイアとエグゼキューションによるアトリビュートを変更
-ゲームプレイエフェクトの主たる機能であるアトリビュートの変更ですが、モディファイアとエグゼキューションという２つの機能により実現しています。
-- モディファイア  
-マグニチュードという値を使って操作タイプごとの計算を行いアトリビュート値を変更させる  
-複雑なカスタム計算を使ってアトリビュートを変更することも可能
-  - マグニチュード  
-    アトリビュート計算に使われる値  
-    マグニチュード値自体も、以下の計算タイプで計算させることができる
-    - ScalableFloat  
-      フロート値による指定  
-      そのままマグニチュード値として扱うことも、テーブルを参照して値を引くこともできる
-      - HarcoreValue  
-        指定された値をそのままマグニチュードとして扱う
-      - Table  
-        データテーブルを使ってアトリビュート値からマグニチュード値を引く
-    - AttributeBased  
-      他のアトリビュートの値をベースに計算する  
-      プレイヤーの最大HPをStrengthと同じとしたり、その10倍の値とするなど  
-	  単一のアトリビュート値をもとにした計算しかできないので、複数の値で計算する場合はMMCを使う
-    - MMC(CustomCalculationClass)  
-      様々なアトリビュートや外部の値を使って複雑な計算を行いマグニチュードを計算する方法  
-      計算を実行する関数を持つクラスを作成して指定
-    - Set by Caller  
-      エフェクトを適用しようとしている呼び出し元にマグニチュードを計算させる  
-      キーと値のペアになっていて、名前またはゲームプレイタグに関連付けられたマグニチュードを割り当てる  
-      コーディングによりマグニチュードを計算したい場合に便利
-  - 操作タイプ  
-    マグニチュードとアトリビュートをどう計算するか以下の操作タイプで指定する
-    - Add  
-    足し算。シンプルに与えられたマグニチュードの値をアトリビュートの値に足す  
-    マグニチュードがマイナスであれば引き算になる
-    - Multiply  
-    掛け算  
-    アトリビュートに対してマグニチュードの値と掛け算をう
-    - Divide  
-    割り算  
-    アトリビュートに対してマグニチュードの値と割り算を行う
-    - Override  
-    上書き  
-    単純に現在のアトリビュートをマグニチュードの値で上書き
-- エグゼキューション(GameplayEffect Execution Calculation)  
-  アトリビュートを変更するための最も強力な方法  
-  コーディングで様々なアトリビュートや数値から動的にゲームプレイエフェクトを生成して適用させる  
-  エフェクトはいくらでも作って適応できるので同時に複数のアトリビュートを変更することができる
-### 期間ポリシー
-ゲームプレイエフェクトは、その有効期間を設定する期間ポリシー(Duration Policy)が存在します。  
-期間ポリシーにかかわらずエフェクトを削除したい売は[こちら](#ゲームプレイエフェクトの適用と削除)を参照してください。
-#### Instant  
-1回限りのアクションで即座に適用されるイン スタントエフェクトで、ベース値を書き換えるます。
-#### Has Duration  
-ゲームプレイエフェクトが有効になる期間を指定できます。  
-一定期間Attributeを変更し、期間が終了したら元の値に戻ります。  
-バフなどに用いられます。
-#### Inifinit  
-ゲームプレイエフェクトの効果を永続的に適用したままにします。  
-期間適用する必要があるかわからない場合やゲームプレイに応じて削除する必要がある場合に役立ちます。  
-セカンダリアトリビュートなどにも用いられます。  
-### スタッキング
-ゲームプレイフェクトはスタック可能で、どのようなルールでスタックさせるかの独自のポリシーを設定できます。  
-詳細は[こちら](#ゲームプレイエフェクトのスタッキング)で説明しています。
-### ゲームプレイタグの追加
-ゲームプレイエフェクトが有効な間、対象のアビリティシステムコンポーネントにゲームプレイタグを追加することができます。
-### アビリティの付与
-ゲームプレイエフェクトが有効な間、指定したアビリティを付与することもできます。
-## ゲームプレイエフェクトの適用
-### ゲームプレイエフェクトスペック
-ゲームプレイエフェクトはどのアトリビュートをどのように変化させるかを記したクラスであるのに対し、ゲームプレイエフェクトスペックは実際にそれがインスタンス化したメモリ上の動的オブジェクトになります。これを対象に適用することによりゲームプレイエフェクトの効果が実行されます。  
-スペックは、エフェクトの参照に加え「誰が」「誰に」「どのレベルで」発動したかという状況の情報(コンテキスト)を持っています。  
-例えば魔法使いがファイアボールを敵にあてた場合
-- ゲームプレイエフェクトスペック(敵に与える効果全般データ)
-  -  ゲームプレイエフェクト(参照)  
-     ファイアボールが与えるダメージのルール
-  -  計算済みの数値
-  -  ゲームプレイエフェクトコンテキストハンドル(発生状況)
-     -  誰が(Instigator)→葉法使い
-     -  何で(Causer)→ファイアボールアクター
-     -  どのように当たったか→HitResult
 
-といった構成の情報の持ち方になります。  
+ゲームプレイエフェクトの特徴を挙げると以下のようなものがあります。
+
+### データのみ
+
+コードは含まないデータだけの構造体です。
+
+### Blueprintベースで作成する
+
+サブクラス化せずゲームプレイエフェクトをそのまま使用します。
+Blueprintで作ると楽ですが、もちろんC++でも作成可能です。
+
+### モディファイアとエグゼキューションによるアトリビュートを変更
+
+ゲームプレイエフェクトの主たる機能であるアトリビュートの変更ですが、モディファイアとエグゼキューションという２つの機能により実現しています。
+
+- モディファイアマグニチュードという値を使って操作タイプごとの計算を行いアトリビュート値を変更させる複雑なカスタム計算を使ってアトリビュートを変更することも可能
+  - マグニチュードアトリビュート計算に使われる値マグニチュード値自体も、以下の計算タイプで計算させることができる
+    - ScalableFloatフロート値による指定そのままマグニチュード値として扱うことも、テーブルを参照して値を引くこともできる
+      - HarcoreValue
+        指定された値をそのままマグニチュードとして扱う
+      - Table
+        データテーブルを使ってアトリビュート値からマグニチュード値を引く
+    - AttributeBased
+      他のアトリビュートの値をベースに計算する
+      プレイヤーの最大HPをStrengthと同じとしたり、その10倍の値とするなど
+      単一のアトリビュート値をもとにした計算しかできないので、複数の値で計算する場合はMMCを使う
+    - MMC(CustomCalculationClass)
+      様々なアトリビュートや外部の値を使って複雑な計算を行いマグニチュードを計算する方法
+      計算を実行する関数を持つクラスを作成して指定
+    - Set by Caller
+      エフェクトを適用しようとしている呼び出し元にマグニチュードを計算させる
+      キーと値のペアになっていて、名前またはゲームプレイタグに関連付けられたマグニチュードを割り当てる
+      コーディングによりマグニチュードを計算したい場合に便利
+  - 操作タイプマグニチュードとアトリビュートをどう計算するか以下の操作タイプで指定する
+    - Add
+      足し算。シンプルに与えられたマグニチュードの値をアトリビュートの値に足す
+      マグニチュードがマイナスであれば引き算になる
+    - Multiply
+      掛け算
+      アトリビュートに対してマグニチュードの値と掛け算をう
+    - Divide
+      割り算
+      アトリビュートに対してマグニチュードの値と割り算を行う
+    - Override
+      上書き
+      単純に現在のアトリビュートをマグニチュードの値で上書き
+- エグゼキューション(GameplayEffect Execution Calculation)
+  アトリビュートを変更するための最も強力な方法
+  コーディングで様々なアトリビュートや数値から動的にゲームプレイエフェクトを生成して適用させる
+  エフェクトはいくらでも作って適応できるので同時に複数のアトリビュートを変更することができる
+
+### 期間ポリシー
+
+ゲームプレイエフェクトは、その有効期間を設定する期間ポリシー(Duration Policy)が存在します。
+期間ポリシーにかかわらずエフェクトを削除したい売は[こちら](#ゲームプレイエフェクトの適用と削除)を参照してください。
+
+#### Instant
+
+1回限りのアクションで即座に適用されるイン スタントエフェクトで、ベース値を書き換えるます。
+
+#### Has Duration
+
+ゲームプレイエフェクトが有効になる期間を指定できます。
+一定期間Attributeを変更し、期間が終了したら元の値に戻ります。
+バフなどに用いられます。
+
+#### Inifinit
+
+ゲームプレイエフェクトの効果を永続的に適用したままにします。
+期間適用する必要があるかわからない場合やゲームプレイに応じて削除する必要がある場合に役立ちます。
+セカンダリアトリビュートなどにも用いられます。
+
+### スタッキング
+
+ゲームプレイフェクトはスタック可能で、どのようなルールでスタックさせるかの独自のポリシーを設定できます。
+詳細は[こちら](#ゲームプレイエフェクトのスタッキング)で説明しています。
+
+### ゲームプレイタグの追加
+
+ゲームプレイエフェクトが有効な間、対象のアビリティシステムコンポーネントにゲームプレイタグを追加することができます。
+
+### アビリティの付与
+
+ゲームプレイエフェクトが有効な間、指定したアビリティを付与することもできます。
+
+## ゲームプレイエフェクトの適用
+
+### ゲームプレイエフェクトスペック
+
+ゲームプレイエフェクトはどのアトリビュートをどのように変化させるかを記したクラスであるのに対し、ゲームプレイエフェクトスペックは実際にそれがインスタンス化したメモリ上の動的オブジェクトになります。これを対象に適用することによりゲームプレイエフェクトの効果が実行されます。スペックは、エフェクトの参照に加え「誰が」「誰に」「どのレベルで」発動したかという状況の情報(コンテキスト)を持っています。例えば魔法使いがファイアボールを敵にあてた場合
+
+- ゲームプレイエフェクトスペック(敵に与える効果全般データ)
+  - ゲームプレイエフェクト(参照)
+    ファイアボールが与えるダメージのルール
+  - 計算済みの数値
+  - ゲームプレイエフェクトコンテキストハンドル(発生状況)
+    - 誰が(Instigator)→葉法使い
+    - 何で(Causer)→ファイアボールアクター
+    - どのように当たったか→HitResult
+
+といった構成の情報の持ち方になります。
+
 ### ゲームプレイエフェクトのワークフロー
-実際にゲームプレイエフェクトが適用されるワークフローは  
-1. ゲームプレイエフェクトコンテキストハンドルの作成  
+
+実際にゲームプレイエフェクトが適用されるワークフローは
+
+1. ゲームプレイエフェクトコンテキストハンドルの作成
    ```cpp
    UAbilitySystemComponent::MakeEffectContext()
-   ```   
+   ```
 2. ゲームプレイエフェクトスペックの作成
    ```cpp
    UAbilitySystemComponent::MakeOutgoingSpec(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level, FGameplayEffectContextHandle Context)  
    ```
-3.  ゲームプレイエフェクトスペックの適用  
-    ```cpp
-    UAbilitySystemComponent::ApplyGameplayEffectSpecToTarget(const FGameplayEffectSpec &Spec, UAbilitySystemComponent *Target, FPredictionKey PredictionKey)
-	```
+3. ゲームプレイエフェクトスペックの適用
+   ```cpp
+   UAbilitySystemComponent::ApplyGameplayEffectSpecToTarget(const FGameplayEffectSpec &Spec, UAbilitySystemComponent *Target, FPredictionKey PredictionKey)
+   ```
+
 といった流れになります。
 
 ## モディファイアによるアトリビュート変更
-モディファイアはアトリビュートをどのように変化させるかを定義したものです。  
+
+モディファイアはアトリビュートをどのように変化させるかを定義したものです。
 値を直接指定するもの、アトリビュート同士の演算を使うもの、呼び出し元で設定するもの、複雑な計算を行うものなど様々な種類があります。
 
 ### スケーラブルフロートによる変更
+
 プライマリアトリビュートの初期値設定などに適している最もシンプルなものです。
 モディファイアに、アトリビュート、演算方法、値を指定して、エフェクトのモディファイア配列に追加します。
-<div style="background-color: #333;">
-  PlayerPrimaryAttributesEffect.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`PlayerPrimaryAttributesEffect.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -2804,17 +2820,12 @@ UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
 	Modifiers.Add(NewMod);
 }
 ```
-</div>
 <br>
 実際に使用する際は、AMyCharacter::ApplyEffectToSelfで直接エフェクトを適用するか、AMyCharacter::SetupDefaultAbilitiesAndEffectsでデフォルトで適用するアトリビュートに追加しておき、初期化時に適用してもらいます。
 <br>
 <br>
 
-<div style="background-color: #333;">
-  MyPlayerCharacter.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
-
+`MyPlayerCharacter.cpp`
 ```cpp
 void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 {
@@ -2824,17 +2835,13 @@ void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 	DefaultEffects.AddUnique(UPlayerPrimaryAttributesEffect::StaticClass());
 }
 ```
-</div>
 <br>
 
 ### スケーラブルフロートとカーブテーブルによる変更
-設定した値を時間としてカーブテーブルから値を引いたものを適用するケースです。  
+設定した値を時間としてカーブテーブルから値を引いたものを適用するケースです。
 RPGなどでレベルごとに最大HPが上がっていく場合、レベルと最大HPの変化をカーブテーブルで表現しておけば、直値にレベルを指定することにより、そのレベルでの最大HPをアトリビュートに設定することができます。
-<div style="background-color: #333;">
-  PlayerPrimaryAttributesEffect.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`PlayerPrimaryAttributesEffect.cpp`
 ```cpp
 UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
 {
@@ -2865,36 +2872,38 @@ UPlayerPrimaryAttributesEffect::UPlayerPrimaryAttributesEffect()
 	Modifiers.Add(NewMod);
 }
 ```
-</div>
 <br>
 
-
 ### アトリビュートによる変更
-他のアトリビュートを使って計算を行い対象となるアトリビュート値を設定する方法です。  
-単一の値から計算することしかできない点に注意が必要です。  
+他のアトリビュートを使って計算を行い対象となるアトリビュート値を設定する方法です。
+単一の値から計算することしかできない点に注意が必要です。
 一つのプライマリアトリビュートをベースにして計算されるセカンダリアトリビュートなどで使われます。
+
 #### 計算の順序
-演算は「事前加算 → 係数乗算 → 事後加算」の順に行われます。  
-例えば  
+演算は「事前加算 → 係数乗算 → 事後加算」の順に行われます。
+例えば
+
 ```
 Armor = (Resilience + 2) * 0.25 + 6
 ```
+
 という計算であれば、モディファイアの計算タイプにAttributeBasedに指定して、
+
 - PreAdd = 2
 - Coefficient = 0.25
 - PostAdd = 6。
-というモディファイアを設定します。
+  というモディファイアを設定します。
 
 #### アトリビュート取得方法
 また、計算元となるアトリビュートをどのように取得するかの設定をFGameplayEffectAttributeCaptureDefinitionという構造体で指定します。
 
-- どのアトリビュート値を使うか  
+- どのアトリビュート値を使うか
   アトリビュートのクラスを指定
-- アトリビュートを取得する対象  
-  アトリビュートを与える側か、与えられる側かを選びます。  
+- アトリビュートを取得する対象
+  アトリビュートを与える側か、与えられる側かを選びます。
   セカンダリアトリビュートはどちらも同じアクターですが、意味合い的に「対象の」という部分が強いのでTargetを指定します。
-- スナップショットを取るか  
-  通常はfalseで大丈夫です。  
+- スナップショットを取るか
+  通常はfalseで大丈夫です。
   キャラクターが弾を発射する場合、敵に与えるダメージエフェクトを弾に持たせることになりますが、着弾時に発射元のキャラクターが死亡などの理由で存在し続けているとは限りません。発射元キャラクターがいない状態でダメージ計算時を行うと計算に必要なアトリビュートが取れなくなるので、そういった場合にスナップショットをtrueにして、エフェクト生成時のアトリビュート値を保存しておきます。
 
 #### 使用するアトリビュートの値
@@ -2904,11 +2913,7 @@ Armor = (Resilience + 2) * 0.25 + 6
 #### アトリビュートの有効期間
 セカンダリーアトリビュートは永続的にプライマリーアトリビュートから計算されるのでDurationPolicyはInfiniteにします。
 
-<div style="background-color: #333;">
-  MySecondaryAttributesEffect.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
-
+`MySecondaryAttributesEffect.cpp`
 ```cpp
 UMySecondaryGameplayEffect::UMySecondaryGameplayEffect()
 {
@@ -2941,16 +2946,11 @@ UMySecondaryGameplayEffect::UMySecondaryGameplayEffect()
 	DurationPolicy = EGameplayEffectDurationType::Infinite;
 }
 ```
-</div>
 <br>
 <br>
-
 プライマリアトリビュートと同様に、実際に使用する際は、AMyCharacter::ApplyEffectToSelfで直接エフェクトを適用するか、AMyCharacter::SetupDefaultAbilitiesAndEffectsでデフォルトで適用するアトリビュートに追加しておき、初期化時に適用してもらいます。
-<div style="background-color: #333;">
-  MyPlayerCharacter.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyPlayerCharacter.cpp`
 ```cpp
 void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 {
@@ -2962,26 +2962,21 @@ void AMyPlayerCharacter::SetupDefaultAbilitiesAndEffects()
 	DefaultEffects.AddUnique(UMySecondaryGameplayEffect::StaticClass());
 }
 ```
-</div>
 <br>
 
 ### 呼び出し元の設定による変更
-ゲームプレイエフェクト適用時にコードでマグニチュードを指定してアトリビュートを変更する方法です。  
-ゲームプレイエフェクトを作成し、モディファイアを追加して以下を設定します。
+ゲームプレイエフェクト適用時にコードでマグニチュードを指定してアトリビュートを変更する方法です。ゲームプレイエフェクトを作成し、モディファイアを追加して以下を設定します。
 - Attributeフィールドに「どのアトリビュートセットのどのプロパティを変更するか」
 - マグニチュードをSetByCallerして、このモディファイアのゲームプレイタグ
 
-アトリビュートを適用する際は、ゲームプレイエフェクトのスペックハンドルを作成した後にUAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitudeでスペックハンドルにゲームプレイタグとfloat値のペアを書き込みます。  
-これでエフェクトを適用するとスペックハンドルに書き込んだゲームプレイタグを持つモディファイアが、アトリビュートにfloat値を書き込みます。  
-スペックハンドルには複数のペアを書き込めるので、同時に複数アトリビュートの変更も可能です。  
-ScalableFloatやアトリビュートベースのような決まった計算ではなく、セーブデータやアビリティ実行時の動的値（ダメージ、属性値、スケールなど）をエフェクトに渡すときに使用します。  
+アトリビュートを適用する際は、ゲームプレイエフェクトのスペックハンドルを作成した後にUAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitudeでスペックハンドルにゲームプレイタグとfloat値のペアを書き込みます。
+これでエフェクトを適用するとスペックハンドルに書き込んだゲームプレイタグを持つモディファイアが、アトリビュートにfloat値を書き込みます。
+スペックハンドルには複数のペアを書き込めるので、同時に複数アトリビュートの変更も可能です。
+ScalableFloatやアトリビュートベースのような決まった計算ではなく、セーブデータやアビリティ実行時の動的値（ダメージ、属性値、スケールなど）をエフェクトに渡すときに使用します。
 
 #### ソースコード
-<div style="background-color: #333;">
-  MyPlayerPrimaryAttributesEffectSetByCaller.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyPlayerPrimaryAttributesEffectSetByCaller.cpp`
 ```cpp
 UMyPlayerPrimaryAttributesEffectSetByCaller::UMyPlayerPrimaryAttributesEffectSetByCaller()
 {
@@ -3006,13 +3001,9 @@ void UMyPlayerPrimaryAttributesEffectSetByCaller::AddSetByCallerModifier(FGamepl
 	Modifiers.Add(NewMod);
 }
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyAbilitySystemLibrary.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyAbilitySystemLibrary.cpp`
 ```cpp
 void UMyAbilitySystemLibrary::InitializeAttributesFromSaveData(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, TSubclassOf<UGameplayEffect> PrimaryAttributesEffectSetByCaller, TSubclassOf<UGameplayEffect> SecondaryAttributesEffect, TSubclassOf<UGameplayEffect> VitalAttributesEffect, UMyCharacterSaveGame* SaveGame)
 {
@@ -3047,22 +3038,17 @@ void UMyAbilitySystemLibrary::InitializeAttributesFromSaveData(const UObject* Wo
 	ASC->ApplyGameplayEffectSpecToSelf(*VitalAttributesSpecHandle.Data.Get());
 }
 ```
-</div>
 <br>
 
-
 ### MMC(Modiier Magnitude Calculations)による変更
-MMCはゲームプレイエフェクトのモディファイアで適用されるマグニチュードを動的に計算する仕組みです。  
-UGameplayModMagnitudeCalculationクラスを継承した計算クラスを作成し、計算を実行する関数(CalculateBaseMagnitude)をオーバーライドすることで、ソース/ターゲットのアトリビュート、タグ、スタック数、効果レベル、乱数、カーブテーブルなどを使ってマグニチュードを計算できるようになります。  
-モディファイア側の設定では、マグニチュードを「Custom」にして、作成した計算クラスを割り当てます。  
+MMCはゲームプレイエフェクトのモディファイアで適用されるマグニチュードを動的に計算する仕組みです。
+UGameplayModMagnitudeCalculationクラスを継承した計算クラスを作成し、計算を実行する関数(CalculateBaseMagnitude)をオーバーライドすることで、ソース/ターゲットのアトリビュート、タグ、スタック数、効果レベル、乱数、カーブテーブルなどを使ってマグニチュードを計算できるようになります。
+モディファイア側の設定では、マグニチュードを「Custom」にして、作成した計算クラスを割り当てます。
 下記の例ではMaxHealthやMaxManaなどはMMCで計算しています。
 
 #### ソースコード
-<div style="background-color: #333;">
-  MyMaxHealthModMagCalc.h
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyMaxHealthModMagCalc.h`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -3079,7 +3065,7 @@ UCLASS()
 class ETA_API UMyMaxHealthModMagCalc : public UGameplayModMagnitudeCalculation
 {
 	GENERATED_BODY()
-	
+
 public:
 	// コンストラクタ
 	UMyMaxHealthModMagCalc();
@@ -3093,13 +3079,9 @@ private:
 	FGameplayEffectAttributeCaptureDefinition VigorDef;
 };
 ```
-</div>
 <br>
-<div style="background-color: #333;">
-  MyMaxHealthModMagCalc.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
 
+`MyMaxHealthModMagCalc.cpp`
 ```cpp
 // Copyright MyGameCompany. All Rights Reserved.
 
@@ -3163,15 +3145,11 @@ float UMyMaxHealthModMagCalc::CalculateBaseMagnitude_Implementation(const FGamep
 	return 80.f + 2.5f * Vigor + 10.f * Level;
 }
 ```
-</div>
-<br>
 
 <br>
-<div style="background-color: #333;">
-  MySecondaryAttributesEffect.cpp
-</div>
-<div style="max-height: 300px; overflow-y: auto;">
+<br>
 
+`MySecondaryAttributesEffect.cpp`
 ```cpp
 UMySecondaryAttributesEffect::UMySecondaryAttributesEffect()
 {
@@ -3204,12 +3182,12 @@ void UMySecondaryAttributesEffect::AddModMagCalcModifier(FGameplayAttribute Attr
 }
 
 ```
-</div>
 <br>
 
 #### キャプチャの設定
-計算に使うアトリビュートのキャプチャをヘッダで定義して、コンストラクタで初期化します。  
+計算に使うアトリビュートのキャプチャをヘッダで定義して、コンストラクタで初期化します。
 キャプチャするアトリビュートと対象(ソース/ターゲット)を設定します。
+
 ```cpp
 // Levelをキャプチャーするための設定
 // キャプチャーするアトリビュートと対象を指定してRelevantAttributesToCaptureに追加しておく
@@ -3220,8 +3198,10 @@ LevelDef.bSnapshot = false;
 ```
 
 #### アトリビュートの取得
-キャプチャしたアトリビュートの値はGetCapturedAttributeMagnitude関数で取得できます。  
+
+キャプチャしたアトリビュートの値はGetCapturedAttributeMagnitude関数で取得できます。
 アトリビュートを取得するためには、スペックからソースとターゲットのキャプチャータグを取得してアトリビュートキャプチャー用のパラメータ(FAggregatorEvaluateParameters)を生成する必要があります。
+
 ```cpp
 // キャプチャーしたアトリビュートを取得するためのEvaluationParametersを生成
 const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
@@ -3235,68 +3215,83 @@ float Vigor = 0.f;
 GetCapturedAttributeMagnitude(VigorDef, Spec, EvaluationParameters, Vigor);
 Vigor = FMath::Max<float>(Vigor, 0.f);
 ```
+
 上記はアトリビュートのマグニチュード取得ですが、SetByCallerで設定されたマグニチュードはGetSetByCallerMagnitudeByTagで取得可能です。
 
 #### エフェクトレベルの取得
+
 計算にエフェクトのレベルが必要な場合は、CalculateBaseMagnitude_Implementation関数の引数であるSpecから取得できます。
+
 ```cpp
 float EffectLevel = Spec.GetLevel();
 ```
 
 ### ExecutionCalculationによる変更
+
 TODO
 
 ### モディファイアの計算順序
+
 TODO
 
 ### モディファイアの係数
+
 TODO
 
 ## ゲームプレイエフェクトの適用と削除
+
 TODO
 
 ## ゲームプレイエフェクトのスタッキング
-ゲームプレイフェクトはスタック可能で、どのようなルールでスタックさせるかの独自のポリシーを設定できます。  
+
+ゲームプレイフェクトはスタック可能で、どのようなルールでスタックさせるかの独自のポリシーを設定できます。
 TODO
 
 ## アトリビュート変更の検知
+
 アビリティシステムコンポーネントはアトリビュート値が変化したときに発生するデリゲートを持っています。
 TODO
 
 ## ゲームプレイエフェクト変更の検知
+
 アビリティシステムコンポーネントはゲームプレイエフェクトが適用・除去されたときに呼び出されるデリゲートを持っています。
 TODO
 
 ## ゲームプレイエフェクトのコンポーネント
-ゲームプレイエフェクトには専用のコンポーネントが追加できます。  
-これによりアトリビュートの変更以外に様々な機能を持たせることができます。  
-以下がコンポーネントのリストです。
-- UIデータ(テキストのみ)  
-  テキストのみを含むUIデータを持たせます。  
+
+ゲームプレイエフェクトには専用のコンポーネントが追加できます。これによりアトリビュートの変更以外に様々な機能を持たせることができます。以下がコンポーネントのリストです。
+
+- UIデータ(テキストのみ)
+  テキストのみを含むUIデータを持たせます。
   これは主に、UGameplayEffectUIDataのサブクラスの例として使用します。
   ゲームにはテキストのみが必要な場合は、このクラスを使用するのが妥当です。
   追加のデータを含めるためには、UGameplayEffectUIDataのカスタムサブクラスを作成します。
-- このエフェクトにあるタグ(アセットタグ)  
-  ゲームプレイエフェクトが持つ(所有する)タグを設定できます。これらはゲームプレイエフェクトが有効な間アビリティシステムコンポーネントで保持されますが、アクターには転送「されません」。  
+- このエフェクトにあるタグ(アセットタグ)
+  ゲームプレイエフェクトが持つ(所有する)タグを設定できます。これらはゲームプレイエフェクトが有効な間アビリティシステムコンポーネントで保持されますが、アクターには転送「されません」。
   タグは継承されたタグに対して「追加するタグ」と「削除するタグ」を指定できるので、設定次第ではエフェクト適用中に特定のタグを無効化するといったことも可能です。
-- このエフェクトを適用/継続するにはタグが必要  
+- このエフェクトを適用/継続するにはタグが必要
   このエフェクトを適用・継続するために必要なターゲット(ゲームプレイエフェクトのオーナー)のタグ要件を設定できます。
-- このエフェクトを適用するチャンス  
+- このエフェクトを適用するチャンス
   ゲームプレイエフェクトの適用条件に確立を設定できます。
-- カスタムでこのエフェクトを適用可能  
+- カスタムでこのエフェクトを適用可能
   CustomApplicationRequirement関数を処理して、このGameplayEffectを適用するかどうかを決定できます。
-- ゲームプレイアビリティを付与  
+- ゲームプレイアビリティを付与
   アクティブな間に追加のゲームプレイアビリティをゲームプレイエフェクトのターゲットに適用します。
 - タグ付きのアビリティをブロック
   オーナーのゲームプレイエフェクトのターゲットアクタに対するゲームプレイタグに基づいて、ゲームプレイアビリティのアクティベーションのブロックを処理します
-- ターゲットアクタにタグを付与  
+- ターゲットアクタにタグを付与
   ゲームプレイエフェクトのターゲット(「オーナー」という場合もあります)にタグを付与します。このタグはアクターに付与されるもので、アビリティシステムコンポーネントには付与「されません」。
-- 他のエフェクトに対する耐性  
-  他のゲームプレイエフェクトスペックの適用をブロックします。  
+- 他のエフェクトに対する耐性
+  他のゲームプレイエフェクトスペックの適用をブロックします。
   アビリティシステムコンポーネントにグローバルハンドラを登録することで他のゲームプレイエフェクトスペックの適用をブロックします。
-- 他のエフェクトを除去  
+- 他のエフェクトを除去
   特定の条件に基づいて、他のゲームプレイエフェクトを削除します
-- 追加のエフェクトを適用  
+- 追加のエフェクトを適用
   特定の条件下(または条件なし)で他のゲームプレイエフェクトを適用します。
 
 # ゲームプレイイベント
+
+# TODO
+- NEW GAMEとセーブロードによるゲーム開始時のプレイヤーパラメータ初期化
+- クールダウンを待つタスク、使い方
+
